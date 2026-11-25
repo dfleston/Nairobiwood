@@ -30,5 +30,13 @@
     "target_subdir": "vae",
     "target_filename": "wan_2.1_vae.safetensors",
     "gated": false
+  },
+  {
+    "id": "wan22_i2v_lightx2v_4step_lora",
+    "repo_id": "Comfy-Org/Wan_2.2_ComfyUI_Repackaged",
+    "filename": "split_files/loras/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors",
+    "target_subdir": "loras",
+    "target_filename": "wan2.2_i2v_lightx2v_4step_lora.safetensors",
+    "gated": false
   }
 ]
