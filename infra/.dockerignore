@@ -1,0 +1,14 @@
+# Ignore all LoRA weights and private assets
+*.safetensors
+*.ckpt
+*.pt
+*.bin
+loras/
+models/loras/
+ComfyFactory/
+*.key
+*.pem
+*.env*
+.git/
+__pycache__/
+*.log

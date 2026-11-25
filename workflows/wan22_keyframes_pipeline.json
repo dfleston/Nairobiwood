@@ -1,0 +1,266 @@
+{
+  "900": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Pipeline 1: Start & End Keyframe Generator (Pre-Render Review Gate)\n**Purpose:** Creates your opening **Start Frame** (and optional identity-anchored **End Frame**) *before* committing GPU time to Wan 2.2 video generation.\n\n- **Nodes 1–11 (Start Frame Branch):** Uses `FLUX.1-dev` + your private Character FLUX LoRA (`0.85` recommended) to compose lighting, framing, wardrobe, and character likeness.\n- **Nodes 12–20 (Anchored End Frame Branch):** Uses `FLUX.1-Kontext-dev` + `ReferenceLatent` (Node 16) to lock the room, lighting, and face from the Start Frame while evolving the pose/expression to your final beat.\n- **Safe to Tweak:** Node `5` (Start Prompt), Node `15` (End Prompt), Node `4`/`13` (`strength_model` 0.75–0.90), Node `6`/`17` (`guidance` 2.5–3.5), and Seeds (`9`, `18`)."
+    },
+    "_meta": {
+      "title": "📖 READ FIRST — Pipeline 1: Start & End Keyframe Gate",
+      "description": "Overview sticky note rendered as a yellow Markdown card in ComfyUI and stripped automatically before headless API execution."
+    }
+  },
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux1-dev-fp8.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[1] Load FLUX.1-dev (Start Frame Base Model)",
+      "description": "Loads the FP8-quantized FLUX.1-dev diffusion transformer used to render the opening keyframe."
+    }
+  },
+  "2": {
+    "class_type": "DualCLIPLoader",
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "[2] Load FLUX DualCLIP (CLIP-L + T5-XXL)",
+      "description": "Shared text encoders for both Start (FLUX.1-dev) and End (FLUX.1-Kontext-dev) branches."
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "_meta": {
+      "title": "[3] Load FLUX Autoencoder (VAE)",
+      "description": "Encodes and decodes 16-channel FLUX image latents to RGB pixels."
+    }
+  },
+  "4": {
+    "class_type": "LoraLoader",
+    "inputs": {
+      "model": ["1", 0],
+      "clip": ["2", 0],
+      "lora_name": "scratch/character_flux.safetensors",
+      "strength_model": 0.85,
+      "strength_clip": 0.85
+    },
+    "_meta": {
+      "title": "[4] Character Identity LoRA (Start Frame — 0.85)",
+      "description": "Injects your private character FLUX LoRA from ephemeral RAM (/dev/shm). Keep strength around 0.80–0.90 for natural skin texture."
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "cinematic medium shot of character in warm golden hour light, 35mm film grain",
+      "clip": ["4", 1]
+    },
+    "_meta": {
+      "title": "[5] Start Frame Positive Prompt (Include Trigger Word)",
+      "description": "Describe camera framing, lighting, environment, wardrobe, and opening expression. Include your character trigger word (e.g., 'dleston man')."
+    }
+  },
+  "6": {
+    "class_type": "FluxGuidance",
+    "inputs": {
+      "conditioning": ["5", 0],
+      "guidance": 3.5
+    },
+    "_meta": {
+      "title": "[6] Start Frame FLUX Guidance (3.5)",
+      "description": "Controls prompt adherence for FLUX.1-dev. Lower (2.5–3.0) feels more photographic; higher (3.5–4.0) follows complex staging more strictly."
+    }
+  },
+  "7": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "blurry, deformed hands, extra fingers, plastic skin, watermark",
+      "clip": ["4", 1]
+    },
+    "_meta": {
+      "title": "[7] Negative Prompt Baseline",
+      "description": "Baseline negative conditioning entry (FLUX uses cfg=1.0 by default, so positive phrasing in Node 5 has the strongest effect)."
+    }
+  },
+  "8": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 1280,
+      "height": 720,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "[8] Keyframe Canvas Resolution (1280x720 16:9)",
+      "description": "Sets the widescreen 720p aspect ratio matching Wan 2.2 14B native HD video generation."
+    }
+  },
+  "9": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["4", 0],
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["8", 0],
+      "seed": 42,
+      "steps": 24,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0
+    },
+    "_meta": {
+      "title": "[9] Sample Start Keyframe (24 Steps, Euler/Simple)",
+      "description": "Generates the Start Frame latent. Change 'seed' to re-roll composition while keeping the same prompt."
+    }
+  },
+  "10": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["9", 0],
+      "vae": ["3", 0]
+    },
+    "_meta": {
+      "title": "[10] Decode Start Keyframe Pixels",
+      "description": "Converts the sampled Start Frame latent into an RGB image."
+    }
+  },
+  "11": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["10", 0],
+      "filename_prefix": "scratch/start_frame"
+    },
+    "_meta": {
+      "title": "[11] Save Start Frame (Sent to Director Studio)",
+      "description": "Writes start_frame.png into ephemeral scratch so Director Studio can display it in the Keyframes review gate."
+    }
+  },
+  "901": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Kontext-Anchored End Frame (Nodes 12–20)\nWhy not generate the End Frame from scratch? Independent T2I generations drift in background geometry, wardrobe, and lighting.\n\nInstead, **Node 14 + Node 16 (`ReferenceLatent`)** feed the decoded Start Frame directly into **`FLUX.1-Kontext-dev`**, instructing it to keep the exact same scene and person while changing only the pose, camera angle, or expression described in **Node 15**."
+    },
+    "_meta": {
+      "title": "🔗 HOW END-FRAME ANCHORING WORKS (FLUX Kontext)",
+      "description": "Explains why ReferenceLatent + FLUX.1-Kontext-dev prevents scene and wardrobe drift between Start and End frames."
+    }
+  },
+  "12": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux1-kontext-dev-fp8.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[12] Load FLUX.1-Kontext-dev (Scene-Consistent Editor)",
+      "description": "Context-aware FLUX model specialized in editing pose/action while preserving the reference image's environment and subject."
+    }
+  },
+  "13": {
+    "class_type": "LoraLoader",
+    "inputs": {
+      "model": ["12", 0],
+      "clip": ["2", 0],
+      "lora_name": "scratch/character_flux.safetensors",
+      "strength_model": 0.85,
+      "strength_clip": 0.85
+    },
+    "_meta": {
+      "title": "[13] Character Identity LoRA (End Frame Kontext — 0.85)",
+      "description": "Reinforces facial identity on the End Frame even if the character turns their head or changes expression."
+    }
+  },
+  "14": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": ["10", 0],
+      "vae": ["3", 0]
+    },
+    "_meta": {
+      "title": "[14] Re-Encode Start Frame as Kontext Reference",
+      "description": "Encodes the newly generated Start Frame pixels into latent space to anchor the End Frame."
+    }
+  },
+  "15": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "same character and room lighting, turning slowly toward the doorway, determined gaze",
+      "clip": ["13", 1]
+    },
+    "_meta": {
+      "title": "[15] End Frame Target Pose / Expression Prompt",
+      "description": "Describe where the character and camera should end up at the end of the shot (e.g., 'same lighting, looking up with a subtle smile')."
+    }
+  },
+  "16": {
+    "class_type": "ReferenceLatent",
+    "inputs": {
+      "conditioning": ["15", 0],
+      "latent": ["14", 0]
+    },
+    "_meta": {
+      "title": "[16] Bind Start Frame Reference to End Conditioning",
+      "description": "Locks the Start Frame's scene context onto the End Frame's text prompt."
+    }
+  },
+  "17": {
+    "class_type": "FluxGuidance",
+    "inputs": {
+      "conditioning": ["16", 0],
+      "guidance": 2.5
+    },
+    "_meta": {
+      "title": "[17] End Frame Kontext Guidance (2.5)",
+      "description": "Slightly gentler guidance (2.5) keeps Kontext faithful to the Start Frame's room and lighting while applying the pose change."
+    }
+  },
+  "18": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["13", 0],
+      "positive": ["17", 0],
+      "negative": ["7", 0],
+      "latent_image": ["8", 0],
+      "seed": 43,
+      "steps": 20,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0
+    },
+    "_meta": {
+      "title": "[18] Sample Anchored End Keyframe (20 Steps)",
+      "description": "Samples the target End Frame. Re-rolling this seed explores different landing poses without changing your approved Start Frame."
+    }
+  },
+  "19": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["18", 0],
+      "vae": ["3", 0]
+    },
+    "_meta": {
+      "title": "[19] Decode End Keyframe Pixels",
+      "description": "Converts the sampled End Frame latent into an RGB image."
+    }
+  },
+  "20": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["19", 0],
+      "filename_prefix": "scratch/end_frame"
+    },
+    "_meta": {
+      "title": "[20] Save End Frame (Sent to Director Studio)",
+      "description": "Writes end_frame.png into ephemeral scratch for side-by-side comparison in Director Studio."
+    }
+  }
+}

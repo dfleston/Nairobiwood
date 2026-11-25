@@ -1,0 +1,128 @@
+{
+  "start_image": {
+    "node_id": "1",
+    "input_key": "image",
+    "type": "string",
+    "description": "Approved Start Keyframe image path relative to ComfyUI input"
+  },
+  "end_image": {
+    "node_id": "2",
+    "input_key": "image",
+    "type": "string",
+    "description": "Optional approved End Keyframe image path relative to ComfyUI input"
+  },
+  "positive_prompt": {
+    "node_id": "5",
+    "input_key": "text",
+    "type": "string",
+    "description": "Wan 2.2 motion/narrative positive prompt"
+  },
+  "negative_prompt": {
+    "node_id": "6",
+    "input_key": "text",
+    "type": "string",
+    "description": "Wan 2.2 negative prompt"
+  },
+  "character_wan22_lora": {
+    "node_id": "10",
+    "input_key": "lora_name",
+    "type": "string",
+    "description": "Character Wan 2.2 low_noise LoRA filename"
+  },
+  "lora_strength": {
+    "node_id": "10",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "Character Wan 2.2 LoRA strength (0.75-0.90)"
+  },
+  "lightx2v_high_strength": {
+    "node_id": "9",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "LightX2V 4-step distill LoRA strength on High-Noise pass (0.0 or 1.0)"
+  },
+  "lightx2v_low_strength": {
+    "node_id": "11",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "LightX2V 4-step distill LoRA strength on Low-Noise pass (0.0 or 1.0)"
+  },
+  "driving_video": {
+    "node_id": "14",
+    "input_key": "video",
+    "type": "string",
+    "description": "Optional driving video path for DWPose/Fun-Control"
+  },
+  "fun_control_strength": {
+    "node_id": "18",
+    "input_key": "strength",
+    "type": "float",
+    "description": "Wan 2.2 Fun-Control conditioning strength (0.0 disables)"
+  },
+  "width": {
+    "node_id": "17",
+    "input_key": "width",
+    "type": "integer",
+    "description": "Render width"
+  },
+  "height": {
+    "node_id": "17",
+    "input_key": "height",
+    "type": "integer",
+    "description": "Render height"
+  },
+  "wan_frames": {
+    "node_id": "17",
+    "input_key": "length",
+    "type": "integer",
+    "description": "Wan 2.2 frame count (must satisfy 4k+1)"
+  },
+  "seed_high": {
+    "node_id": "19",
+    "input_key": "noise_seed",
+    "type": "integer",
+    "description": "Noise seed for High-Noise MoE pass"
+  },
+  "seed_low": {
+    "node_id": "20",
+    "input_key": "noise_seed",
+    "type": "integer",
+    "description": "Noise seed for Low-Noise MoE pass"
+  },
+  "steps_high": {
+    "node_id": "19",
+    "input_key": "steps",
+    "type": "integer",
+    "description": "Total diffusion steps (High-Noise sampler)"
+  },
+  "steps_low": {
+    "node_id": "20",
+    "input_key": "steps",
+    "type": "integer",
+    "description": "Total diffusion steps (Low-Noise sampler)"
+  },
+  "handoff_step_high": {
+    "node_id": "19",
+    "input_key": "end_at_step",
+    "type": "integer",
+    "description": "MoE handoff step out of total steps"
+  },
+  "handoff_step_low": {
+    "node_id": "20",
+    "input_key": "start_at_step",
+    "type": "integer",
+    "description": "MoE resume step for Low-Noise pass"
+  },
+  "lossless_prefix": {
+    "node_id": "22",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for lossless FFV1 master"
+  },
+  "preview_prefix": {
+    "node_id": "23",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for H.264 preview MP4"
+  }
+}

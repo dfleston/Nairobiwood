@@ -1,0 +1,47 @@
+# Secrets & Environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.token
+
+# Models & Weights (Strictly no private LoRAs or weights in git)
+*.safetensors
+*.ckpt
+*.pt
+*.bin
+*.onnx
+loras/
+**/loras/
+models/
+ComfyFactory/
+data/
+datasets/
+
+# Media & Renders
+*.mp4
+*.mkv
+*.webm
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.heic
+*.HEIC
+References/Characters/
+
+# Python & Node
+.venv/
+**/.venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+node_modules/
+mcp-app/node_modules/
+
+# OS & Factory state
+.DS_Store
+.active_factory.json
+tmp/
+scratch/

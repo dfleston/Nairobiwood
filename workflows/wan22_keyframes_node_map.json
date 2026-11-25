@@ -1,0 +1,86 @@
+{
+  "character_flux_lora": {
+    "node_id": "4",
+    "input_key": "lora_name",
+    "type": "string",
+    "description": "Character FLUX LoRA filename in ComfyUI loras/scratch"
+  },
+  "character_flux_lora_end": {
+    "node_id": "13",
+    "input_key": "lora_name",
+    "type": "string",
+    "description": "Character FLUX LoRA filename for anchored end keyframe"
+  },
+  "lora_strength": {
+    "node_id": "4",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "Character FLUX LoRA model strength (Start)"
+  },
+  "lora_strength_clip": {
+    "node_id": "4",
+    "input_key": "strength_clip",
+    "type": "float",
+    "description": "Character FLUX LoRA CLIP strength (Start)"
+  },
+  "lora_strength_end": {
+    "node_id": "13",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "Character FLUX LoRA model strength (End Kontext)"
+  },
+  "start_prompt": {
+    "node_id": "5",
+    "input_key": "text",
+    "type": "string",
+    "description": "Positive prompt for Start Keyframe"
+  },
+  "negative_prompt": {
+    "node_id": "7",
+    "input_key": "text",
+    "type": "string",
+    "description": "Negative prompt for Start/End Keyframes"
+  },
+  "end_prompt": {
+    "node_id": "15",
+    "input_key": "text",
+    "type": "string",
+    "description": "Positive prompt for Kontext-anchored End Keyframe"
+  },
+  "width": {
+    "node_id": "8",
+    "input_key": "width",
+    "type": "integer",
+    "description": "Keyframe width in pixels"
+  },
+  "height": {
+    "node_id": "8",
+    "input_key": "height",
+    "type": "integer",
+    "description": "Keyframe height in pixels"
+  },
+  "start_seed": {
+    "node_id": "9",
+    "input_key": "seed",
+    "type": "integer",
+    "description": "Random seed for Start Keyframe"
+  },
+  "end_seed": {
+    "node_id": "18",
+    "input_key": "seed",
+    "type": "integer",
+    "description": "Random seed for End Keyframe"
+  },
+  "start_prefix": {
+    "node_id": "11",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for Start Keyframe"
+  },
+  "end_prefix": {
+    "node_id": "20",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for End Keyframe"
+  }
+}

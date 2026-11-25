@@ -1,0 +1,86 @@
+{
+  "900": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Pipeline 5: Final Story Finishing (RIFE Frame Interpolation + MMAudio Foley)\n**Purpose:** Polishes your assembled lossless story cut into a broadcast-ready delivery MP4.\n\n- **Why Run RIFE Only at Final Export?** During Pause-and-Pivot editing, every frame index (`0 .. N`) must represent a real Wan 2.2 frame (`24 fps`). Interpolating earlier would create synthetic blended tween frames. Running **RIFE 4.26 (Node `2`)** *only* at the end doubles motion smoothness (`24 -> 48 fps`) cleanly.\n- **Video-Synced Foley (Nodes `3`–`4`):** **MMAudio Large 44.1kHz v2** watches the actual video frames to synthesize synchronized footsteps, cloth movement, door clicks, and room ambience guided by your foley prompt."
+    },
+    "_meta": {
+      "title": "📖 READ FIRST — Pipeline 5: Post-Export Finishing (RIFE + MMAudio)",
+      "description": "Explains why frame interpolation and foley audio synthesis happen only after all shots and branches are locked."
+    }
+  },
+  "1": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "scratch/master_for_export.mkv",
+      "force_rate": 24,
+      "frame_load_cap": 0,
+      "select_every_nth": 1
+    },
+    "_meta": {
+      "title": "[1] Load Assembled 24 fps Lossless Story Master",
+      "description": "Loads the concatenated FFV1 lossless master assembled from your chosen shot branches."
+    }
+  },
+  "2": {
+    "class_type": "RIFE VFI",
+    "inputs": {
+      "frames": ["1", 0],
+      "ckpt_name": "rife426.pth",
+      "clear_cache_after_n_frames": 16,
+      "multiplier": 2,
+      "fast_mode": true,
+      "ensemble": true,
+      "scale_factor": 1.0
+    },
+    "_meta": {
+      "title": "[2] RIFE 4.26 Optical-Flow Interpolation (24 -> 48 fps)",
+      "description": "Doubles frame rate to 48 fps (multiplier=2) with VRAM cache clearing every 16 frames so long sequences never OOM."
+    }
+  },
+  "3": {
+    "class_type": "MMAudioModelLoader",
+    "inputs": {
+      "mmaudio_model": "mmaudio_large_44k_v2.safetensors",
+      "base_precision": "fp16"
+    },
+    "_meta": {
+      "title": "[3] Load MMAudio Large 44.1kHz v2 Foley Engine",
+      "description": "Multimodal video-to-audio model generating full-bandwidth 44.1 kHz sound effects."
+    }
+  },
+  "4": {
+    "class_type": "MMAudioSampler",
+    "inputs": {
+      "mmaudio_model": ["3", 0],
+      "images": ["2", 0],
+      "duration": 5.0,
+      "steps": 25,
+      "cfg": 4.5,
+      "seed": 42,
+      "prompt": "subtle room tone, realistic footsteps and cloth rustle",
+      "negative_prompt": "music, harsh static, clipping"
+    },
+    "_meta": {
+      "title": "[4] Synthesize Frame-Synced Foley & Ambience",
+      "description": "Describe environmental sounds and physical impacts (e.g., 'rain on window, leather jacket rustle, wooden floorboards')."
+    }
+  },
+  "5": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["2", 0],
+      "audio": ["4", 0],
+      "frame_rate": 48,
+      "loop_count": 0,
+      "filename_prefix": "scratch/final_export",
+      "format": "video/h264-mp4",
+      "crf": 17,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "[5] Encode Final Delivery Master (H.264 MP4, CRF 17, 48 fps + Audio)",
+      "description": "High-bitrate CRF 17 H.264 MP4 downloaded back to ~/ComfyFactory/outputs/<project>/exports/."
+    }
+  }
+}

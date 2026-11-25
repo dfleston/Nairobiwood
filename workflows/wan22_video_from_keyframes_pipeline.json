@@ -1,0 +1,330 @@
+{
+  "900": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Pipeline 2: Wan 2.2 14B MoE Video Generator (From Approved Keyframes)\n**Purpose:** Animates your approved **Start Frame** (and optional **End Frame**) into a 24 fps shot using Wan 2.2's Mixture-of-Experts dual-model handoff.\n\n- **Why Two 14B Models?**\n  1. **Pass 1 — High-Noise Expert (Nodes `7`, `19`):** Runs steps `0 -> 12` to establish macro camera movement, body trajectory, and physics. *(No character LoRA here so motion stays fluid.)*\n  2. **Pass 2 — Low-Noise Expert (Nodes `8`, `10`, `20`):** Takes over at step `12 -> 24` with your **Character Wan 2.2 LoRA** (`0.85`) to lock crisp facial identity, eyes, and skin texture.\n- **Wan `4k + 1` Frame Rule:** Node `17` (`length`) must always equal `4k + 1` (e.g., `81` frames = 3.375s, `121` frames = 5.0s at 24 fps).\n- **Dual Outputs:** Saves both a **Lossless FFV1 Master `.mkv`** (Node `22`, for zero-loss frame slicing) and a **H.264 Preview `.mp4`** (Node `23`, for smooth scrubbing in Director Studio)."
+    },
+    "_meta": {
+      "title": "📖 READ FIRST — Pipeline 2: Wan 2.2 Dual-Expert MoE Video",
+      "description": "Explains the High-Noise -> Low-Noise MoE handoff, character LoRA placement, 4k+1 frame math, and lossless master output."
+    }
+  },
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "scratch/start_frame.png"
+    },
+    "_meta": {
+      "title": "[1] Load Approved Start Keyframe",
+      "description": "Loads the Start Frame approved in Director Studio (or handed off from the final frame of the previous shot)."
+    }
+  },
+  "2": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "scratch/end_frame.png"
+    },
+    "_meta": {
+      "title": "[2] Load Approved End Keyframe (Optional Anchor)",
+      "description": "Loads the optional End Frame anchor so Wan 2.2 interpolates smoothly from Start pose to End pose."
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "[3] Load UMT5-XXL Text Encoder (Multilingual Motion Prompting)",
+      "description": "Encodes motion, camera movement, and acting beats for Wan 2.2."
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    },
+    "_meta": {
+      "title": "[4] Load Wan 3D Causal Video VAE (4x Temporal Compression)",
+      "description": "3D causal VAE that compresses every 4 frames temporally after frame 0 — the reason frame counts follow 4k + 1."
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "smooth natural camera push-in, character breathes and turns head gently, cinematic film lighting",
+      "clip": ["3", 0]
+    },
+    "_meta": {
+      "title": "[5] Motion & Camera Positive Prompt",
+      "description": "Focus on physical motion, camera work (push-in, pan, handheld), and emotional micro-expressions rather than re-describing static clothes."
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "static, morphing face, extra limbs, jitter, flicker, low quality",
+      "clip": ["3", 0]
+    },
+    "_meta": {
+      "title": "[6] Motion Negative Prompt",
+      "description": "Suppresses temporal flicker, face morphing, frozen frames, and limb duplication."
+    }
+  },
+  "7": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[7] Load Wan 2.2 High-Noise 14B Expert (Macro Motion)",
+      "description": "First-stage 14B MoE expert responsible for blocking out camera motion and body physics during noisy early steps."
+    }
+  },
+  "8": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[8] Load Wan 2.2 Low-Noise 14B Expert (Identity & Fine Detail)",
+      "description": "Second-stage 14B MoE expert responsible for facial likeness, eyes, hands, fabric, and lighting detail."
+    }
+  },
+  "9": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["7", 0],
+      "lora_name": "wan2.2_i2v_lightx2v_4step_lora.safetensors",
+      "strength_model": 0.0
+    },
+    "_meta": {
+      "title": "[9] Optional LightX2V Fast-Distill LoRA (High-Noise — 0.0 Off / 1.0 Fast)",
+      "description": "Set to 1.0 (along with Node 11 and 4–8 total steps) for rapid draft previews; keep at 0.0 for full 24-step cinema quality."
+    }
+  },
+  "10": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["8", 0],
+      "lora_name": "scratch/character_wan22.safetensors",
+      "strength_model": 0.85
+    },
+    "_meta": {
+      "title": "[10] Character Wan 2.2 Low-Noise LoRA (0.85)",
+      "description": "Applies your private character Wan 2.2 LoRA exclusively to the Low-Noise expert so identity stays locked without stiffening body motion."
+    }
+  },
+  "11": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["10", 0],
+      "lora_name": "wan2.2_i2v_lightx2v_4step_lora.safetensors",
+      "strength_model": 0.0
+    },
+    "_meta": {
+      "title": "[11] Optional LightX2V Fast-Distill LoRA (Low-Noise — 0.0 Off / 1.0 Fast)",
+      "description": "Companion fast-distill toggle for Pass 2. Keep 0.0 for master renders."
+    }
+  },
+  "12": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": ["9", 0],
+      "shift": 6.0
+    },
+    "_meta": {
+      "title": "[12] High-Noise Flow-Match Shift (6.0)",
+      "description": "Sets the timestep schedule shift (5.0–7.0) for 720p Wan 2.2 flow-matching on Pass 1."
+    }
+  },
+  "13": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": ["11", 0],
+      "shift": 6.0
+    },
+    "_meta": {
+      "title": "[13] Low-Noise Flow-Match Shift (6.0)",
+      "description": "Matches Pass 1's timestep shift (6.0) so the step-12 handoff is seamless."
+    }
+  },
+  "901": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Optional Driving Video Control (Nodes 14–16 & 18)\nWant your character to copy an actor's real head turn, walk cycle, or hand gesture? Supply a `driving_video_path` in Chat or Director Studio:\n- **Node 15 (`DWPreprocessor`)** extracts body + face + finger skeletons.\n- **Node 16 (`DepthAnythingV2`)** extracts 3D scene depth.\n- **Node 18 (`WanFunControlToVideo`)** blends the motion guide when `strength > 0.0` (default `0.0` = pure keyframe-driven I2V)."
+    },
+    "_meta": {
+      "title": "🎭 OPTIONAL MOTION CONTROL (DWPose + Depth + Fun-Control)",
+      "description": "Explains optional driving-video pose/depth conditioning."
+    }
+  },
+  "14": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "scratch/driving_video.mp4",
+      "force_rate": 24,
+      "frame_load_cap": 121,
+      "select_every_nth": 1
+    },
+    "_meta": {
+      "title": "[14] Load Optional Driving Reference Video (24 fps)",
+      "description": "Reference performance clip used only when Fun-Control strength (Node 18) is above 0.0."
+    }
+  },
+  "15": {
+    "class_type": "DWPreprocessor",
+    "inputs": {
+      "image": ["14", 0],
+      "detect_hand": "enable",
+      "detect_body": "enable",
+      "detect_face": "enable",
+      "resolution": 512
+    },
+    "_meta": {
+      "title": "[15] Extract DWPose Body + Hand + Face Skeleton",
+      "description": "Tracks body, facial landmarks, and articulated fingers from the driving video."
+    }
+  },
+  "16": {
+    "class_type": "DepthAnythingV2Preprocessor",
+    "inputs": {
+      "image": ["14", 0],
+      "ckpt_name": "depth_anything_v2_vitl.pth",
+      "resolution": 512
+    },
+    "_meta": {
+      "title": "[16] Extract DepthAnythingV2 Spatial Map",
+      "description": "Computes per-frame depth maps from the driving video for optional spatial blocking."
+    }
+  },
+  "17": {
+    "class_type": "WanFirstLastFrameToVideo",
+    "inputs": {
+      "positive": ["5", 0],
+      "negative": ["6", 0],
+      "vae": ["4", 0],
+      "start_image": ["1", 0],
+      "end_image": ["2", 0],
+      "width": 1280,
+      "height": 720,
+      "length": 121,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "[17] Build Wan 2.2 Start/End Video Latents (Length = 4k + 1)",
+      "description": "Packs Start/End keyframes into a 1280x720 video latent volume. Length MUST be 4k+1 (e.g., 49, 81, 97, 121)."
+    }
+  },
+  "18": {
+    "class_type": "WanFunControlToVideo",
+    "inputs": {
+      "positive": ["17", 0],
+      "negative": ["17", 1],
+      "vae": ["4", 0],
+      "start_image": ["1", 0],
+      "control_video": ["15", 0],
+      "width": 1280,
+      "height": 720,
+      "length": 121,
+      "batch_size": 1,
+      "strength": 0.0
+    },
+    "_meta": {
+      "title": "[18] Apply Fun-Control Pose Guide (0.0 = Disabled, 0.65 = Active)",
+      "description": "When strength is 0.0, passes Start/End conditioning untouched; raise to 0.5–0.8 to follow the DWPose driving performance."
+    }
+  },
+  "19": {
+    "class_type": "KSamplerAdvanced",
+    "inputs": {
+      "model": ["12", 0],
+      "add_noise": "enable",
+      "noise_seed": 42,
+      "steps": 24,
+      "cfg": 3.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": ["18", 0],
+      "negative": ["18", 1],
+      "latent_image": ["17", 2],
+      "start_at_step": 0,
+      "end_at_step": 12,
+      "return_with_leftover_noise": "enable"
+    },
+    "_meta": {
+      "title": "[19] MoE Pass 1: High-Noise Sampler (Steps 0 -> 12, Keep Noise)",
+      "description": "Runs the first half of denoising with the High-Noise 14B expert and hands leftover noise directly to Node 20."
+    }
+  },
+  "20": {
+    "class_type": "KSamplerAdvanced",
+    "inputs": {
+      "model": ["13", 0],
+      "add_noise": "disable",
+      "noise_seed": 42,
+      "steps": 24,
+      "cfg": 3.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": ["18", 0],
+      "negative": ["18", 1],
+      "latent_image": ["19", 0],
+      "start_at_step": 12,
+      "end_at_step": 24,
+      "return_with_leftover_noise": "disable"
+    },
+    "_meta": {
+      "title": "[20] MoE Pass 2: Low-Noise Sampler + Character LoRA (Steps 12 -> 24)",
+      "description": "Resumes at step 12 without adding fresh noise, refining facial identity and sharp details to completion."
+    }
+  },
+  "21": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["20", 0],
+      "vae": ["4", 0]
+    },
+    "_meta": {
+      "title": "[21] Decode Wan 3D Video Latents to Frames",
+      "description": "Decodes the finished temporal latent volume into 1280x720 RGB video frames."
+    }
+  },
+  "22": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["21", 0],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "scratch/shot_master_lossless",
+      "format": "video/ffv1-mkv",
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "[22] Save Lossless Archival Master (FFV1 .mkv @ 24 fps)",
+      "description": "Mathematically lossless master used for exact frame extraction and zero-generation-loss Pause-and-Pivot splicing."
+    }
+  },
+  "23": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["21", 0],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "scratch/shot_preview",
+      "format": "video/h264-mp4",
+      "crf": 18,
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "[23] Save Web Preview Clip (H.264 .mp4 @ 24 fps)",
+      "description": "Browser-ready H.264 MP4 streamed into the Director Studio Timeline scrubber."
+    }
+  }
+}

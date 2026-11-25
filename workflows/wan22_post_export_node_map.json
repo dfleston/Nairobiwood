@@ -1,0 +1,44 @@
+{
+  "master_video": {
+    "node_id": "1",
+    "input_key": "video",
+    "type": "string",
+    "description": "Native-FPS lossless master .mkv path"
+  },
+  "rife_multiplier": {
+    "node_id": "2",
+    "input_key": "multiplier",
+    "type": "integer",
+    "description": "RIFE frame rate multiplier (e.g., 2 for 24->48fps)"
+  },
+  "mmaudio_duration": {
+    "node_id": "4",
+    "input_key": "duration",
+    "type": "float",
+    "description": "Audio synthesis duration in seconds"
+  },
+  "mmaudio_prompt": {
+    "node_id": "4",
+    "input_key": "prompt",
+    "type": "string",
+    "description": "Foley / ambient sound prompt"
+  },
+  "mmaudio_seed": {
+    "node_id": "4",
+    "input_key": "seed",
+    "type": "integer",
+    "description": "MMAudio seed"
+  },
+  "export_fps": {
+    "node_id": "5",
+    "input_key": "frame_rate",
+    "type": "integer",
+    "description": "Final exported frame rate"
+  },
+  "export_prefix": {
+    "node_id": "5",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for final exported MP4"
+  }
+}

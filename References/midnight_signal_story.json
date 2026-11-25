@@ -1,0 +1,417 @@
+{
+  "Story": {
+    "Title": "Midnight Signal / La Señal de Medianoche",
+    "Logline": "Across a rain-slicked Nairobi midnight, D.Leston tracks an encrypted analog frequency to a glass transit atrium where acoustic archivist Zuri Vance hands him the master amber reel needed to broadcast a live human signal before dawn.",
+    "Character": [
+      {
+        "Id": 1,
+        "id": "char_d_leston",
+        "Name": "D_Leston",
+        "Gender": "Male",
+        "Rol/Description": "Signal Architect & Acoustic Technologist — tracks the analog frequency across the city",
+        "Appearance": "dleston man, Hispanic/Mediterranean man in his late 30s, loose dark wavy hair with silver strands and faded sides, salt-and-pepper beard, intense focused eyes",
+        "Wardrobe": "Charcoal wool trench coat over a matte black turtleneck, matte-black studio headphones resting around his neck",
+        "Props": ["prop_brass_transceiver"],
+        "Personality": "Focused, deliberate, quietly magnetic"
+      },
+      {
+        "Id": 2,
+        "id": "char_zuri_vance",
+        "Name": "Zuri Vance",
+        "Gender": "Female",
+        "Rol/Description": "Underground Acoustic Archivist — keeper of the analog master reels",
+        "Appearance": "East African woman in her early 30s, sculpted high braided updo woven with subtle copper thread, high cheekbones, calm piercing dark eyes",
+        "Wardrobe": "Tailored ochre-gold leather field jacket over an ivory silk shirt, dark tailored trousers",
+        "Props": ["prop_frequency_ledger"],
+        "Personality": "Poised, enigmatic, fiercely protective of the analog archive"
+      }
+    ],
+    "Props": [
+      {
+        "id": "prop_brass_transceiver",
+        "Name": "Vintage Brass Field Transceiver",
+        "Description": "Handheld brushed-brass analog radio transceiver with two glowing warm amber vacuum tubes and an analog needle dial"
+      },
+      {
+        "id": "prop_frequency_ledger",
+        "Name": "Copper-Bound Frequency Ledger",
+        "Description": "Weathered leather-and-copper notebook filled with hand-drawn acoustic waveform charts"
+      },
+      {
+        "id": "prop_amber_reel",
+        "Name": "Luminous Amber Magnetic Tape Reel",
+        "Description": "Precision-machined translucent amber 10-inchオープン magnetic audio reel etched with gold timecode markings"
+      }
+    ],
+    "Scenes": [
+      {
+        "Id": 1,
+        "id": "scene_01",
+        "Scene_Name": "Scene 1: The Rain-Slicked Overpass (El Paso Elevado)",
+        "Scene_plot": "At midnight on a rain-slicked elevated walkway overlooking Nairobi's neon-and-sodium skyline, D.Leston tunes his brass transceiver until the amber vacuum tubes lock onto the hidden frequency.",
+        "Scenes_Characters": ["D_Leston"],
+        "Scene_background": "Rain-slicked concrete pedestrian overpass at midnight, wet asphalt reflecting cyan and warm sodium-vapor streetlamps, mist rising in the background.",
+        "dop_direction": {
+          "time_of_day": "Midnight (00:15 AM)",
+          "lighting_setup": "High-contrast wet reflections: cool cyan nocturnal rain backlight balanced against warm 2700K amber glow from the transceiver vacuum tubes on D.Leston's face",
+          "color_override": "Deep midnight slate, wet cyan reflections, warm amber tube glow",
+          "lens_strategy": "35mm anamorphic wide establishing + 85mm close-up",
+          "camera_energy": "Slow atmospheric Steadicam push-in"
+        },
+        "Character_states": [
+          {
+            "character_id": "char_d_leston",
+            "wardrobe": "Charcoal wool trench coat over a matte black turtleneck, matte-black studio headphones resting around his neck",
+            "prop_ids": ["prop_brass_transceiver"]
+          }
+        ],
+        "beats": [
+          {
+            "id": "s01_b00",
+            "order": 0,
+            "type": "narration",
+            "character_id": "char_d_leston",
+            "tone": "Intimate_Reflective_Spanish",
+            "blocking_action": "D.Leston stands under a flickering streetlamp on the rain-slicked overpass, holding the Vintage Brass Field Transceiver as rain beads on his charcoal trench coat.",
+            "spoken_text": "En medio del ruido sintético, todavía existe una frecuencia que no se puede falsificar."
+          },
+          {
+            "id": "s01_b01",
+            "order": 1,
+            "type": "action",
+            "character_id": "char_d_leston",
+            "tone": "Focused_Intensity",
+            "blocking_action": "Tight close-up as D.Leston rotates the brass dial; the twin amber vacuum tubes flare brightly, reflecting in his pupils as he raises the transceiver.",
+            "spoken_text": "Ahí está. Pulso analógico puro a trescientos metros."
+          },
+          {
+            "id": "s01_b02",
+            "order": 2,
+            "type": "action",
+            "character_id": "char_d_leston",
+            "tone": "Determined",
+            "blocking_action": "D.Leston looks up toward the illuminated glass transit atrium across the wet plaza and strides forward through the mist.",
+            "spoken_text": null
+          }
+        ],
+        "shots": [
+          {
+            "id": "s01_sh01",
+            "order": 1,
+            "beat_ids": ["s01_b00"],
+            "duration_sec": 5,
+            "framing": "Medium wide anamorphic shot on rain-slicked overpass",
+            "focal_length_mm": 35,
+            "camera_motion": {
+              "description": "Slow dolly push-in through falling mist toward D.Leston",
+              "higgsfield_motion_id": "slow_push_in",
+              "strength": 0.4
+            },
+            "bindings": {
+              "character_ids": ["char_d_leston"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Medium wide shot on ARRI Alexa 35 with 35mm Atlas Orion Anamorphic lens at f/2.0. dleston man (Hispanic man in his late 30s, loose dark wavy hair with silver strands, salt-and-pepper beard, wearing a charcoal wool trench coat over a matte black turtleneck with matte-black studio headphones around his neck) stands on a rain-slicked concrete overpass at midnight. In his hands he holds a vintage brushed-brass field transceiver with two glowing warm amber vacuum tubes. Wet pavement reflects cyan city lights and warm sodium streetlamps."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Slow cinematic dolly push-in over 5 seconds. Fine midnight rain falls past the lens; dleston man looks down at the glowing amber vacuum tubes of the brass transceiver in his hands, his breath visible in the cool night air as cars streak softly in the distant background bokeh.",
+              "audio_cue": "Spanish inner monologue (warm baritone): 'En medio del ruido sintético, todavía existe una frecuencia que no se puede falsificar.' Soft rain on concrete and analog radio static."
+            }
+          },
+          {
+            "id": "s01_sh02",
+            "order": 2,
+            "beat_ids": ["s01_b01"],
+            "duration_sec": 5,
+            "framing": "Tight macro close-up on D.Leston and the glowing brass transceiver",
+            "focal_length_mm": 85,
+            "camera_motion": {
+              "description": "Subtle handheld micro-drift locking onto his eyes and the glowing tubes",
+              "higgsfield_motion_id": "subtle_handheld",
+              "strength": 0.35
+            },
+            "bindings": {
+              "character_ids": ["char_d_leston"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Tight close-up shot on ARRI Alexa 35 with 85mm Atlas Orion Anamorphic lens at f/2.0. dleston man (loose dark wavy hair with silver strands, salt-and-pepper beard, charcoal wool trench coat collar over matte black turtleneck, studio headphones around neck) holds the vintage brass field transceiver near his chin. Warm 2700K orange-amber light from the two vacuum tubes illuminates his cheekbones and reflects sharply inside his dark eyes against a cyan rain-blurred background."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Tight close-up over 5 seconds. dleston man's fingers turn the knurled brass frequency dial; the amber vacuum tubes pulse brighter onto his face as his eyes narrow with recognition and he speaks quietly.",
+              "audio_cue": "D.Leston (quiet intensity): 'Ahí está. Pulso analógico puro a trescientos metros.' Warm vacuum-tube hum locking onto a rhythmic pulse."
+            }
+          },
+          {
+            "id": "s01_sh03",
+            "order": 3,
+            "beat_ids": ["s01_b02"],
+            "duration_sec": 5,
+            "framing": "Medium tracking profile shot moving toward the glass atrium",
+            "focal_length_mm": 50,
+            "camera_motion": {
+              "description": "Lateral tracking shot matching D.Leston's stride across the wet plaza",
+              "higgsfield_motion_id": "track_right",
+              "strength": 0.5
+            },
+            "bindings": {
+              "character_ids": ["char_d_leston"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Medium profile shot on ARRI Alexa 35 with 50mm Atlas Orion Anamorphic lens at f/2.0. dleston man (loose dark wavy hair with silver strands, salt-and-pepper beard, wearing charcoal wool trench coat over matte black turtleneck, black studio headphones around neck, carrying the glowing brass transceiver in his right hand) strides across a wet stone plaza toward a glowing modernist glass transit atrium in the background."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Smooth lateral Steadicam tracking shot over 5 seconds as dleston man walks decisively through drifting night mist toward the warm glass transit atrium, his charcoal trench coat moving with his stride.",
+              "audio_cue": "Footsteps splashing lightly on wet stone, rising analog synth bass note."
+            }
+          }
+        ]
+      },
+      {
+        "Id": 2,
+        "id": "scene_02",
+        "Scene_Name": "Scene 2: The Glass Transit Atrium (El Encuentro)",
+        "Scene_plot": "Inside the misted glass transit atrium, Zuri Vance waits with her copper-bound frequency ledger. D.Leston arrives (persisting his Scene 1 trench coat and brass transceiver) and receives the luminous amber master reel.",
+        "Scenes_Characters": ["Zuri Vance", "D_Leston"],
+        "Scene_background": "Architectural glass-and-steel transit atrium at night, condensation on tall glass panels, warm tungsten overhead practicals contrasting with blue rain outside.",
+        "dop_direction": {
+          "time_of_day": "Midnight (00:30 AM)",
+          "lighting_setup": "Warm 3200K tungsten overhead architectural lighting inside the glass atrium with rain streaks on the glass walls",
+          "color_override": "Ochre gold, warm tungsten amber, and deep slate glass",
+          "lens_strategy": "50mm anamorphic singles and over-the-shoulder handoff",
+          "camera_energy": "Poised, deliberate classical framing"
+        },
+        "Character_states": [
+          {
+            "character_id": "char_d_leston",
+            "wardrobe": null,
+            "prop_ids": null
+          },
+          {
+            "character_id": "char_zuri_vance",
+            "wardrobe": "Tailored ochre-gold leather field jacket over an ivory silk shirt, dark tailored trousers",
+            "prop_ids": ["prop_frequency_ledger", "prop_amber_reel"]
+          }
+        ],
+        "beats": [
+          {
+            "id": "s02_b00",
+            "order": 0,
+            "type": "dialogue",
+            "character_id": "char_zuri_vance",
+            "tone": "Poised_Calm_English",
+            "blocking_action": "Zuri Vance stands beside a rain-streaked glass pillar in her ochre-gold leather jacket, holding the copper-bound frequency ledger against her chest as she watches the entrance.",
+            "spoken_text": "You followed the carrier wave all the way through the storm."
+          },
+          {
+            "id": "s02_b01",
+            "order": 1,
+            "type": "dialogue",
+            "character_id": "char_d_leston",
+            "tone": "Resolute_Spanish",
+            "blocking_action": "D.Leston steps inside the glass atrium—still wearing his rain-dampened charcoal trench coat, turtleneck, headphones, and holding the brass transceiver—and nods to Zuri.",
+            "spoken_text": "La señal me trajo hasta aquí. ¿Tienes la bobina maestra?"
+          },
+          {
+            "id": "s02_b02",
+            "order": 2,
+            "type": "dialogue",
+            "character_id": "char_zuri_vance",
+            "tone": "Urgent_Grace_English",
+            "blocking_action": "Zuri Vance opens the copper ledger and lifts the Luminous Amber Magnetic Tape Reel into the warm tungsten light, extending it toward D.Leston.",
+            "spoken_text": "Guard it well. Once this reel spins at dawn, every ear in the city will wake."
+          }
+        ],
+        "shots": [
+          {
+            "id": "s02_sh01",
+            "order": 1,
+            "beat_ids": ["s02_b00"],
+            "duration_sec": 5,
+            "framing": "Medium close-up on Zuri Vance inside the glass transit atrium",
+            "focal_length_mm": 50,
+            "camera_motion": {
+              "description": "Gentle slow push-in on Zuri Vance",
+              "higgsfield_motion_id": "slow_push_in",
+              "strength": 0.35
+            },
+            "bindings": {
+              "character_ids": ["char_zuri_vance"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Medium close-up shot on ARRI Alexa 35 with 50mm Atlas Orion Anamorphic lens at f/2.0. Zuri Vance (East African woman in her early 30s, sculpted high braided updo woven with subtle copper thread, high cheekbones, calm piercing dark eyes, wearing a tailored ochre-gold leather field jacket over an ivory silk shirt) stands inside a modernist glass transit atrium at night, holding a weathered copper-bound frequency ledger. Warm 3200K tungsten light sculpts her face against rain-streaked glass panels."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Slow poised camera push-in over 5 seconds. Zuri Vance turns her head smoothly toward the atrium entrance, her copper-threaded braids catching the warm tungsten light as she speaks with calm authority while holding the copper frequency ledger.",
+              "audio_cue": "Zuri Vance (poised, resonant English): 'You followed the carrier wave all the way through the storm.' Soft interior atrium reverb."
+            }
+          },
+          {
+            "id": "s02_sh02",
+            "order": 2,
+            "beat_ids": ["s02_b01"],
+            "duration_sec": 5,
+            "framing": "Medium shot on D.Leston inside the glass atrium (persisted Scene 1 wardrobe & props)",
+            "focal_length_mm": 50,
+            "camera_motion": {
+              "description": "Subtle dolly arc as D.Leston steps into the warm atrium light",
+              "higgsfield_motion_id": "subtle_arc_left",
+              "strength": 0.35
+            },
+            "bindings": {
+              "character_ids": ["char_d_leston"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Medium shot on ARRI Alexa 35 with 50mm Atlas Orion Anamorphic lens at f/2.0. dleston man (loose dark wavy hair with silver strands, salt-and-pepper beard) stands inside the warm glass transit atrium, still wearing his rain-beaded charcoal wool trench coat over a matte black turtleneck with matte-black studio headphones around his neck and holding the vintage brass field transceiver. Warm 3200K tungsten interior light mixes with cool blue rain on the glass behind him."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Subtle camera arc over 5 seconds. dleston man lowers the brass transceiver slightly, his rain-beaded charcoal trench coat catching the warm tungsten atrium light as he speaks earnestly to Zuri.",
+              "audio_cue": "D.Leston (resolute Spanish): 'La señal me trajo hasta aquí. ¿Tienes la bobina maestra?'"
+            }
+          },
+          {
+            "id": "s02_sh03",
+            "order": 3,
+            "beat_ids": ["s02_b02"],
+            "duration_sec": 5,
+            "framing": "Medium close-up on Zuri Vance presenting the glowing amber magnetic tape reel",
+            "focal_length_mm": 50,
+            "camera_motion": {
+              "description": "Slow tilt and push-in from the glowing amber reel to Zuri's eyes",
+              "higgsfield_motion_id": "slow_push_in",
+              "strength": 0.4
+            },
+            "bindings": {
+              "character_ids": ["char_zuri_vance"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Medium close-up shot on ARRI Alexa 35 with 50mm Atlas Orion Anamorphic lens at f/2.0. Zuri Vance (East African woman in her early 30s, sculpted high braided updo with copper thread, wearing her tailored ochre-gold leather field jacket over an ivory silk shirt) holds a precision-machined translucent amber 10-inch magnetic audio reel etched with gold timecode markings in both hands inside the warm tungsten glass atrium, with the copper-bound frequency ledger tucked under her arm."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Slow camera push-in over 5 seconds as Zuri Vance extends the translucent amber magnetic tape reel forward; warm tungsten light refracts through the amber reel onto her ochre-gold leather jacket as she speaks.",
+              "audio_cue": "Zuri Vance (urgent grace): 'Guard it well. Once this reel spins at dawn, every ear in the city will wake.'"
+            }
+          }
+        ]
+      },
+      {
+        "Id": 3,
+        "id": "scene_03",
+        "Scene_Name": "Scene 3: The Rooftop Acoustic Dome (La Transmisión)",
+        "Scene_plot": "Inside a rooftop geodesic acoustic studio as pre-dawn gold breaks over Nairobi, D.Leston (having shed his trench coat into a rolled-sleeve black shirt and aviator sunglasses, holding the amber reel) mounts the tape while Zuri Vance watches in her persisted ochre-gold jacket.",
+        "Scenes_Characters": ["D_Leston", "Zuri Vance"],
+        "Scene_background": "Rooftop geodesic glass-and-timber acoustic broadcast dome overlooking the Nairobi skyline at pre-dawn blue-and-gold hour, vintage reel-to-reel master console in center.",
+        "dop_direction": {
+          "time_of_day": "Pre-Dawn Golden Break (05:45 AM)",
+          "lighting_setup": "First rays of golden-hour sunrise slicing through the geodesic dome glass, meeting the warm amber glow of the master tape console",
+          "color_override": "Pre-dawn indigo transitioning into radiant solar gold and warm mahogany",
+          "lens_strategy": "35mm anamorphic hero framing + 50mm closing portrait",
+          "camera_energy": "Triumphant, grounded slow orbit"
+        },
+        "Character_states": [
+          {
+            "character_id": "char_d_leston",
+            "wardrobe": "Matte black rolled-sleeve button-down shirt, matte-black studio headphones over his ears, gold-rimmed aviator sunglasses resting on his collar",
+            "prop_ids": ["prop_amber_reel"]
+          },
+          {
+            "character_id": "char_zuri_vance",
+            "wardrobe": null,
+            "prop_ids": null
+          }
+        ],
+        "beats": [
+          {
+            "id": "s03_b00",
+            "order": 0,
+            "type": "dialogue",
+            "character_id": "char_d_leston",
+            "tone": "Sober_Command_Spanish",
+            "blocking_action": "In his rolled-sleeve black button-down shirt with studio headphones over his ears, D.Leston locks the Luminous Amber Magnetic Tape Reel onto the rooftop master console and engages the broadcast lever.",
+            "spoken_text": "La bobina está en posición. Ahora la ciudad escucha nuestra voz real."
+          },
+          {
+            "id": "s03_b01",
+            "order": 1,
+            "type": "action",
+            "character_id": "char_zuri_vance",
+            "tone": "Luminous_Resolution",
+            "blocking_action": "Zuri Vance—still in her ochre-gold leather jacket holding the copper ledger—smiles quietly beside the spinning amber reel as golden sunrise floods the geodesic dome.",
+            "spoken_text": "Signal locked. Welcome to the new chapter."
+          }
+        ],
+        "shots": [
+          {
+            "id": "s03_sh01",
+            "order": 1,
+            "beat_ids": ["s03_b00"],
+            "duration_sec": 5,
+            "framing": "Medium hero shot on D.Leston at the rooftop reel-to-reel console",
+            "focal_length_mm": 35,
+            "camera_motion": {
+              "description": "Slow low-angle hero push-in as the amber tape reel begins to spin",
+              "higgsfield_motion_id": "slow_push_in",
+              "strength": 0.45
+            },
+            "bindings": {
+              "character_ids": ["char_d_leston"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Medium hero shot on ARRI Alexa 35 with 35mm Atlas Orion Anamorphic lens at f/2.0. dleston man (loose dark wavy hair with silver strands, salt-and-pepper beard, wearing a matte black rolled-sleeve button-down shirt, matte-black studio headphones over his ears, and gold-rimmed aviator sunglasses hooked on his collar) stands at a vintage analog reel-to-reel broadcast console inside a geodesic glass rooftop dome at sunrise. His hands lock the translucent amber 10-inch magnetic tape reel onto the console spindle as warm golden dawn light breaks over the skyline behind him."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Slow low-angle hero push-in over 5 seconds. dleston man presses the brass transport switch; the translucent amber magnetic tape reel begins to spin smoothly, casting warm golden reflections across his hands and face as he looks up with calm self-mastery.",
+              "audio_cue": "D.Leston (sober command, Spanish): 'La bobina está en posición. Ahora la ciudad escucha nuestra voz real.' Mechanical tape transport click followed by warm acoustic guitar and deep sub-bass chord."
+            }
+          },
+          {
+            "id": "s03_sh02",
+            "order": 2,
+            "beat_ids": ["s03_b01"],
+            "duration_sec": 5,
+            "framing": "Medium close-up on Zuri Vance bathed in golden sunrise beside the spinning console",
+            "focal_length_mm": 50,
+            "camera_motion": {
+              "description": "Gentle arc revealing the sunlit skyline through the geodesic dome",
+              "higgsfield_motion_id": "subtle_arc_right",
+              "strength": 0.4
+            },
+            "bindings": {
+              "character_ids": ["char_zuri_vance"]
+            },
+            "start_frame": {
+              "prompt": "Grounded 35mm anamorphic cinema, Kodak Vision3 500T grain. Medium close-up shot on ARRI Alexa 35 with 50mm Atlas Orion Anamorphic lens at f/2.0. Zuri Vance (East African woman in her early 30s, sculpted high braided updo with copper thread, wearing her persisted tailored ochre-gold leather field jacket over an ivory silk shirt, holding the copper-bound frequency ledger) stands beside the spinning translucent amber magnetic tape reel inside the geodesic glass rooftop dome as golden-hour sunrise light floods the skyline behind her."
+            },
+            "end_frame": {
+              "prompt": null
+            },
+            "video": {
+              "motion_prompt": "Gentle camera arc right over 5 seconds. Golden sunrise flares softly through the geodesic glass dome as the amber tape reel spins in the foreground; Zuri Vance looks out over the waking city with a quiet, resolute smile.",
+              "audio_cue": "Zuri Vance (warm English): 'Signal locked. Welcome to the new chapter.' Swelling acoustic-electronic outro chord."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

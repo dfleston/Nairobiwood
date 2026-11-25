@@ -1,0 +1,104 @@
+{
+  "repaired_start_image": {
+    "node_id": "1",
+    "input_key": "image",
+    "type": "string",
+    "description": "Approved Frame K Repaired PNG path"
+  },
+  "pivot_end_image": {
+    "node_id": "2",
+    "input_key": "image",
+    "type": "string",
+    "description": "Optional target End Frame PNG for Pivot mode"
+  },
+  "continuation_prompt": {
+    "node_id": "5",
+    "input_key": "text",
+    "type": "string",
+    "description": "Positive prompt from Frame K onward"
+  },
+  "negative_prompt": {
+    "node_id": "6",
+    "input_key": "text",
+    "type": "string",
+    "description": "Negative prompt from Frame K onward"
+  },
+  "character_wan22_lora": {
+    "node_id": "9",
+    "input_key": "lora_name",
+    "type": "string",
+    "description": "Character Wan 2.2 low_noise LoRA filename"
+  },
+  "lora_strength": {
+    "node_id": "9",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "Character Wan 2.2 LoRA strength"
+  },
+  "width": {
+    "node_id": "12",
+    "input_key": "width",
+    "type": "integer",
+    "description": "Output video width"
+  },
+  "height": {
+    "node_id": "12",
+    "input_key": "height",
+    "type": "integer",
+    "description": "Output video height"
+  },
+  "wan_frames": {
+    "node_id": "12",
+    "input_key": "length",
+    "type": "integer",
+    "description": "Wan 2.2 generated frame count (must satisfy 4k+1)"
+  },
+  "seed_high": {
+    "node_id": "13",
+    "input_key": "noise_seed",
+    "type": "integer",
+    "description": "Noise seed for High-Noise MoE pass"
+  },
+  "seed_low": {
+    "node_id": "14",
+    "input_key": "noise_seed",
+    "type": "integer",
+    "description": "Noise seed for Low-Noise MoE pass"
+  },
+  "trim_remaining_frames": {
+    "node_id": "17",
+    "input_key": "length",
+    "type": "integer",
+    "description": "Exact tail frame count after dropping duplicate index 0"
+  },
+  "tail_lossless_prefix": {
+    "node_id": "18",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for lossless continuation tail"
+  },
+  "lipsync_tail_video": {
+    "node_id": "19",
+    "input_key": "video",
+    "type": "string",
+    "description": "Tail clip K..N for LatentSync mode"
+  },
+  "lipsync_audio_wav": {
+    "node_id": "20",
+    "input_key": "audio",
+    "type": "string",
+    "description": "Dialogue .wav file for LatentSync mode"
+  },
+  "lipsync_seed": {
+    "node_id": "21",
+    "input_key": "seed",
+    "type": "integer",
+    "description": "LatentSync seed"
+  },
+  "lipsync_prefix": {
+    "node_id": "22",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for lossless lip-synced tail"
+  }
+}

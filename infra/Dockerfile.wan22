@@ -1,0 +1,91 @@
+# syntax=docker/dockerfile:1
+FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    HF_HUB_ENABLE_HF_TRANSFER=1 \
+    COMFYUI_DISABLE_ANALYTICS=1
+
+# 1. System packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-dev \
+    git \
+    curl \
+    wget \
+    aria2 \
+    ffmpeg \
+    tmux \
+    jq \
+    rsync \
+    openssh-server \
+    libgl1 \
+    libglib2.0-0 \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Hardened SSH for RunPod access (key auth only)
+RUN mkdir -p /run/sshd && \
+    sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config && \
+    sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/^#\?AllowTcpForwarding.*/AllowTcpForwarding yes/' /etc/ssh/sshd_config
+
+# 3. PyTorch 2.6.0 + CUDA 12.4 + Core Acceleration
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install \
+      torch==2.6.0 torchvision torchaudio \
+      --index-url https://download.pytorch.org/whl/cu124 && \
+    python3 -m pip install \
+      huggingface_hub[hf_transfer] \
+      hf-transfer \
+      accelerate \
+      transformers \
+      safetensors \
+      einops \
+      opencv-python-headless \
+      pillow \
+      soundfile \
+      scipy \
+      "numpy<2"
+
+# 4. Patch PyTorch 2.6 schema inference to support Python 3.10 typing (PEP 585/604)
+RUN python3 -c "import torch, torch._library.infer_schema as s; \
+path = s.__file__; \
+code = '''\n# Add PEP 585 / 604 types support\nSUPPORTED_PARAM_TYPES.update({\n    list[int]: 'SymInt[]',\n    list[float]: 'float[]',\n    list[bool]: 'bool[]',\n    list[torch.Tensor]: 'Tensor[]',\n    torch.Tensor | None: 'Tensor?',\n    int | None: 'SymInt?',\n    float | None: 'float?',\n    str | None: 'str?',\n    bool | None: 'bool?',\n})\n'''; \
+with open(path, 'r') as f: c = f.read(); \
+c += code; \
+with open(path, 'w') as f: f.write(c)"
+
+# 5. Clone ComfyUI & install dependencies
+WORKDIR /opt
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /opt/ComfyUI && \
+    cd /opt/ComfyUI && \
+    python3 -m pip install -r requirements.txt
+
+# 6. Install custom nodes
+WORKDIR /opt/ComfyUI/custom_nodes
+RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
+    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
+    for req in */requirements.txt; do \
+      if [ -f "$req" ]; then python3 -m pip install -r "$req" || true; fi; \
+    done
+
+# 7. Setup models structure & bootstrapper (No LoRAs, No baked weights)
+RUN mkdir -p /opt/ComfyUI/models/diffusion_models \
+             /opt/ComfyUI/models/clip \
+             /opt/ComfyUI/models/vae \
+             /opt/ComfyUI/models/loras \
+             /opt/ComfyUI/models/unet && \
+    ln -sfn /opt/ComfyUI/models/diffusion_models/* /opt/ComfyUI/models/unet/ 2>/dev/null || true && \
+    touch /opt/ComfyUI/models/loras/put_loras_here
+
+COPY wan22_models_manifest.json /opt/wan22_models_manifest.json
+COPY bootstrap_wan22.sh /opt/bootstrap_wan22.sh
+COPY entrypoint-wan22.sh /entrypoint.sh
+RUN chmod +x /opt/bootstrap_wan22.sh /entrypoint.sh
+
+EXPOSE 22 8188
+
+ENTRYPOINT ["/entrypoint.sh"]

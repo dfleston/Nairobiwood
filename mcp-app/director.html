@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Nairobiwood Director Studio</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="studio-shell">
+      <header class="studio-header">
+        <div class="brand-group">
+          <h1 class="studio-title">Nairobiwood Director Studio</h1>
+          <span id="factory-badge" class="badge badge-idle">RunPod: Idle</span>
+        </div>
+        <div class="header-controls">
+          <div class="inline-field">
+            <label for="project-select">Project</label>
+            <select id="project-select" name="project_select"></select>
+          </div>
+          <div class="inline-field">
+            <label for="scene-select">Scene</label>
+            <select id="scene-select" name="scene_select">
+              <option value="">All Scenes</option>
+            </select>
+          </div>
+          <div class="inline-field">
+            <label for="shot-select">Shot</label>
+            <select id="shot-select" name="shot_select"></select>
+          </div>
+          <button type="button" id="btn-refresh" class="btn-secondary">Refresh</button>
+          <button type="button" id="btn-open-browser" class="btn-secondary">Open in Browser</button>
+        </div>
+      </header>
+
+      <div id="status-banner" class="status-banner" role="status" aria-live="polite">
+        Ready. Load a StudioMode Story Bible or select a project/shot to supervise keyframes and video.
+      </div>
+
+      <div class="tabs">
+        <div focusgroup="tablist nomemory" aria-label="Director Studio Modes" class="tablist">
+          <button type="button" id="tab-keyframes" aria-selected="true" focusgroupstart>
+            Storyboard &amp; First-Frame Gate
+          </button>
+          <button type="button" id="tab-timeline" aria-selected="false">
+            Timeline Scrub, Repair &amp; Branch
+          </button>
+        </div>
+
+        <div class="panels-grid">
+          <div role="tabpanel" aria-labelledby="tab-keyframes" id="panel-keyframes">
+            <div class="tabpanel-body">
+              <!-- 1. Production Bible Loader & Master Character Portraits -->
+              <section class="card" aria-labelledby="heading-bible">
+                <div class="card-head">
+                  <div>
+                    <h2 id="heading-bible">1. StudioMode Production Bible &amp; Character Casting</h2>
+                    <p id="bible-subtitle" class="muted-inline">
+                      Ingest a raw story JSON or StudioMode <code>project.json</code> to stage all scenes, wardrobe/prop continuity, and shots.
+                    </p>
+                  </div>
+                </div>
+                <form id="form-import-bible" class="form-grid" aria-label="Import Story or Production Bible">
+                  <div class="field">
+                    <label for="bible-project-name">Target Project Folder (in ~/ComfyFactory/outputs)</label>
+                    <input
+                      type="text"
+                      id="bible-project-name"
+                      name="project_name"
+                      value="seed-project"
+                      required
+                      autocorrect="off"
+                      autocapitalize="none"
+                      spellcheck="false"
+                    />
+                  </div>
+                  <div class="field span-2">
+                    <label for="bible-source-path">Story JSON or StudioMode <code>project.json</code> Path</label>
+                    <div class="inline-input-row">
+                      <input
+                        type="text"
+                        id="bible-source-path"
+                        name="story_or_bible_path"
+                        value="/Users/leston/code/StudioMode/runs/seed-project/project.json"
+                        placeholder="/Users/leston/code/StudioMode/runs/<slug>/project.json"
+                        autocorrect="off"
+                        autocapitalize="none"
+                        spellcheck="false"
+                      />
+                      <button type="submit" id="btn-import-bible" class="btn-primary">
+                        Load &amp; Stage Storyboard
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                <div id="character-casting-strip" class="character-strip" aria-label="Character Casting & Master Portraits"></div>
+              </section>
+
+              <!-- 2. Multi-Scene Visual Storyboard Grid -->
+              <section class="card" aria-labelledby="heading-storyboard">
+                <div class="card-head">
+                  <div>
+                    <h2 id="heading-storyboard">2. Scene Storyboard (First Frames Building Up Per Scene)</h2>
+                    <p class="muted-inline">
+                      Click any shot card to inspect, rebuild with editing suggestions/area selection, or direct its video.
+                    </p>
+                  </div>
+                  <div class="card-actions">
+                    <button type="button" id="btn-gen-active-scene" class="btn-secondary">
+                      Generate Active Scene First Frames
+                    </button>
+                    <button type="button" id="btn-gen-all-scenes" class="btn-primary">
+                      Generate All Staged First Frames
+                    </button>
+                  </div>
+                </div>
+                <div id="storyboard-container" class="storyboard-scenes">
+                  <p class="muted">No storyboard shots staged yet. Click "Load &amp; Stage Storyboard" above or generate a shot below.</p>
+                </div>
+              </section>
+
+              <!-- 3. Active Shot Inspector: First Frame Composition & Rebuild -->
+              <form id="form-keyframes" class="card form-grid" aria-labelledby="heading-shot-inspector">
+                <div class="card-head span-2">
+                  <h2 id="heading-shot-inspector">3. Active Shot Inspector — First Frame Setup</h2>
+                  <span id="kf-approval-pill" class="badge badge-warn">Staged</span>
+                </div>
+
+                <div id="shot-continuity-banner" class="continuity-banner span-2" hidden></div>
+
+                <div class="field">
+                  <label for="kf-project">Project Name</label>
+                  <input
+                    type="text"
+                    id="kf-project"
+                    name="project_name"
+                    value="seed-project"
+                    required
+                    autocorrect="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                  />
+                </div>
+                <div class="field">
+                  <label for="kf-shot">Shot ID</label>
+                  <input
+                    type="text"
+                    id="kf-shot"
+                    name="shot_id"
+                    value="s01_sh01"
+                    required
+                    autocorrect="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                  />
+                </div>
+                <div class="field">
+                  <label for="kf-character">Character (LoRA or Master Portrait)</label>
+                  <select id="kf-character" name="character_name" required>
+                    <option value="">Loading available characters...</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="kf-lora">LoRA Strength (<output id="kf-lora-out" for="kf-lora">0.85</output>)</label>
+                  <input type="range" id="kf-lora" name="lora_strength" min="0.1" max="1.2" step="0.05" value="0.85" />
+                </div>
+                <div class="field span-2">
+                  <label for="kf-start-prompt">First Frame (Start Keyframe) 6-Layer Prompt</label>
+                  <textarea
+                    id="kf-start-prompt"
+                    name="start_prompt"
+                    rows="3"
+                    required
+                    placeholder="Describe the opening frame, lighting, inherited wardrobe, persistent props, and pose..."
+                  ></textarea>
+                </div>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="kf-use-end" name="use_end_frame" />
+                  <label for="kf-use-end">Lock End Keyframe (Kontext-anchored)</label>
+                </div>
+                <div class="field">
+                  <label for="kf-seed">Seed</label>
+                  <input type="number" id="kf-seed" name="seed" value="42" />
+                </div>
+                <div class="field span-2">
+                  <label for="kf-end-prompt">End Keyframe Prompt (Optional)</label>
+                  <textarea
+                    id="kf-end-prompt"
+                    name="end_prompt"
+                    rows="2"
+                    placeholder="Describe the target final pose/expression..."
+                  ></textarea>
+                </div>
+                <div class="actions-row span-2">
+                  <button type="submit" id="btn-gen-keyframes" class="btn-primary">
+                    Generate / Refresh Shot Keyframe(s)
+                  </button>
+                </div>
+              </form>
+
+              <section class="keyframe-pair">
+                <article class="card kf-card">
+                  <div class="card-head">
+                    <h2>Start Frame (Scene First Frame)</h2>
+                    <div class="card-actions">
+                      <button type="button" id="btn-reroll-start" class="btn-secondary">Re-roll Seed</button>
+                      <button type="button" id="btn-mask-start" class="btn-secondary">
+                        Select Area &amp; Rebuild (Brush / SAM2)
+                      </button>
+                    </div>
+                  </div>
+                  <div class="media-box">
+                    <img id="img-start-kf" alt="Start keyframe preview" />
+                    <p id="empty-start-kf" class="muted">No Start Frame generated yet.</p>
+                  </div>
+                  <div class="rebuild-box">
+                    <label for="edit-suggestion-start">Rebuild with Editing Suggestion (Kontext-Anchored)</label>
+                    <div class="inline-input-row">
+                      <input
+                        type="text"
+                        id="edit-suggestion-start"
+                        name="edit_suggestion_start"
+                        placeholder="e.g., Keep composition and wardrobe, tilt head toward monitor with stronger cyan reflection..."
+                      />
+                      <button type="button" id="btn-rebuild-start" class="btn-secondary">
+                        Rebuild Frame
+                      </button>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="card kf-card">
+                  <div class="card-head">
+                    <h2>End Frame (Optional Anchor)</h2>
+                    <div class="card-actions">
+                      <button type="button" id="btn-reroll-end" class="btn-secondary">Re-roll Seed</button>
+                      <button type="button" id="btn-mask-end" class="btn-secondary">
+                        Select Area &amp; Rebuild (Brush / SAM2)
+                      </button>
+                    </div>
+                  </div>
+                  <div class="media-box">
+                    <img id="img-end-kf" alt="End keyframe preview" />
+                    <p id="empty-end-kf" class="muted">No End Frame locked (single start-frame I2V).</p>
+                  </div>
+                  <div class="rebuild-box">
+                    <label for="edit-suggestion-end">Rebuild End Frame with Editing Suggestion</label>
+                    <div class="inline-input-row">
+                      <input
+                        type="text"
+                        id="edit-suggestion-end"
+                        name="edit_suggestion_end"
+                        placeholder="e.g., Keep lighting and clothes, turn profile toward camera..."
+                      />
+                      <button type="button" id="btn-rebuild-end" class="btn-secondary">
+                        Rebuild End
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              </section>
+
+              <!-- 4. Frame-to-Video Direction Gate -->
+              <form id="form-render" class="card render-gate" aria-labelledby="heading-video-gate">
+                <div class="card-head">
+                  <h2 id="heading-video-gate">4. Frame-to-Video Scene Direction &amp; Render Gate (Wan 2.2 MoE)</h2>
+                </div>
+                <div class="form-grid">
+                  <div class="field span-2">
+                    <label for="render-motion-prompt">
+                      Scene &amp; Video Motion Direction Prompt (Describes how the approved First Frame animates into video)
+                    </label>
+                    <textarea
+                      id="render-motion-prompt"
+                      name="video_motion_prompt"
+                      rows="3"
+                      required
+                      placeholder="Describe camera choreography (dolly push-in, pan, tracking), subject movement, micro-expressions, and physics from T=0s to T=end..."
+                    ></textarea>
+                  </div>
+                  <div class="field span-2">
+                    <label for="render-audio-cue">Spoken Dialogue / Audio Direction Cue (From Production Bible)</label>
+                    <input
+                      type="text"
+                      id="render-audio-cue"
+                      name="audio_cue"
+                      placeholder="Voice/dialogue reference and foley notes..."
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="render-duration">Duration (sec)</label>
+                    <input type="number" id="render-duration" name="duration_sec" value="6" min="1" max="15" step="0.5" />
+                  </div>
+                  <div class="field">
+                    <label for="render-driving">Driving Video Path (Optional DWPose)</label>
+                    <input
+                      type="text"
+                      id="render-driving"
+                      name="driving_video_path"
+                      placeholder="outputs/.../driving.mp4"
+                      autocorrect="off"
+                      autocapitalize="none"
+                      spellcheck="false"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="render-wav">Dialogue Audio WAV (Optional)</label>
+                    <input
+                      type="text"
+                      id="render-wav"
+                      name="audio_wav_path"
+                      placeholder="voices/line_01.wav"
+                      autocorrect="off"
+                      autocapitalize="none"
+                      spellcheck="false"
+                    />
+                  </div>
+                  <div class="checkbox-row">
+                    <input type="checkbox" id="render-fast-distill" name="use_fast_distill_lora" />
+                    <label for="render-fast-distill">Use LightX2V 4-Step Fast Distill</label>
+                  </div>
+                </div>
+                <div class="actions-row">
+                  <button type="submit" id="btn-approve-render" class="btn-accent">
+                    Approve First Frame &amp; Render Video Shot
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-timeline" id="panel-timeline" hidden="until-found" inert>
+            <div class="tabpanel-body">
+              <section class="card timeline-stage">
+                <div class="card-head">
+                  <h2>Timeline Scrub &amp; Mask Canvas</h2>
+                  <div class="inline-field">
+                    <label for="branch-select">Branch</label>
+                    <select id="branch-select" name="branch_select"></select>
+                  </div>
+                </div>
+
+                <div class="scrubber-stage">
+                  <video id="timeline-video" controls playsinline></video>
+                  <img id="timeline-frame-img" alt="Selected frame preview" hidden />
+                  <canvas id="timeline-mask-canvas"></canvas>
+                </div>
+
+                <div class="scrubber-controls">
+                  <div class="stepper-row">
+                    <button type="button" id="btn-step-m10" class="btn-secondary">-10</button>
+                    <button type="button" id="btn-step-m1" class="btn-secondary">-1</button>
+                    <button type="button" id="btn-toggle-play" class="btn-secondary">Play / Pause</button>
+                    <button type="button" id="btn-step-p1" class="btn-secondary">+1</button>
+                    <button type="button" id="btn-step-p10" class="btn-secondary">+10</button>
+                    <span class="frame-readout">Frame <strong id="frame-index-label">0</strong> / <span id="frame-total-label">0</span></span>
+                  </div>
+                  <input type="range" id="frame-slider" name="frame_slider" min="0" max="80" value="0" aria-label="Frame scrubber" />
+                  <div class="brush-toolbar">
+                    <div class="checkbox-row">
+                      <input type="checkbox" id="brush-enable" name="brush_enable" />
+                      <label for="brush-enable">Paint Mask Overlay</label>
+                    </div>
+                    <button type="button" id="btn-brush-mode" class="btn-secondary">Mode: Brush</button>
+                    <div class="inline-field">
+                      <label for="brush-size">Size</label>
+                      <input type="range" id="brush-size" name="brush_size" min="6" max="80" value="24" />
+                    </div>
+                    <button type="button" id="btn-brush-clear" class="btn-secondary">Clear Mask</button>
+                  </div>
+                </div>
+              </section>
+
+              <form id="form-repair" class="card" aria-labelledby="heading-repair">
+                <div class="card-head">
+                  <h2 id="heading-repair">Step 1 — Repair Frame K</h2>
+                  <span id="seam-score-badge" class="badge badge-idle">Seam Score: —</span>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="rep-character">Character</label>
+                    <select id="rep-character" name="rep_character">
+                      <option value="">Loading available characters...</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="rep-engine">Repair Engine</label>
+                    <select id="rep-engine" name="repair_engine">
+                      <option value="kontext">FLUX Kontext (Identity / Expression / Pose)</option>
+                      <option value="fill">FLUX Fill (Hand / Prop / Background)</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="rep-target-text">SAM2 Target Text (if no brushed mask)</label>
+                    <input type="text" id="rep-target-text" name="mask_target_text" placeholder="e.g., right hand and glass" />
+                  </div>
+                  <div class="field">
+                    <label for="rep-denoise">Denoise (<output id="rep-denoise-out" for="rep-denoise">0.65</output>)</label>
+                    <input type="range" id="rep-denoise" name="inpaint_denoise" min="0.2" max="0.95" step="0.05" value="0.65" />
+                  </div>
+                  <div class="field span-2">
+                    <label for="rep-prompt">Repair Prompt</label>
+                    <textarea id="rep-prompt" name="repair_prompt" rows="2" required placeholder="Describe the fix on Frame K..."></textarea>
+                  </div>
+                </div>
+                <div class="actions-row">
+                  <button type="submit" id="btn-repair-frame" class="btn-primary">Extract &amp; Repair Frame K</button>
+                </div>
+
+                <div class="seam-strip">
+                  <figure class="seam-cell">
+                    <figcaption>Frame (K-1) Seam Ref</figcaption>
+                    <img id="img-seam-prev" alt="Previous frame reference" />
+                  </figure>
+                  <figure class="seam-cell">
+                    <figcaption>Frame K Raw</figcaption>
+                    <img id="img-seam-raw" alt="Raw frame K" />
+                  </figure>
+                  <figure class="seam-cell">
+                    <figcaption>Frame K Repaired</figcaption>
+                    <img id="img-seam-repaired" alt="Repaired frame K" />
+                  </figure>
+                </div>
+              </form>
+
+              <form id="form-continue" class="card" aria-labelledby="heading-continue">
+                <div class="card-head">
+                  <h2 id="heading-continue">Step 2 — Continue Forward From Frame K</h2>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="cont-mode">Continuation Mode</label>
+                    <select id="cont-mode" name="continuation_mode">
+                      <option value="carry">Carry (Propagate Fix Along Original Motion)</option>
+                      <option value="pivot">Pivot (Redirect Story / Prompt / Action)</option>
+                      <option value="lipsync">Lip-Sync (Fast LatentSync 1.6 Audio Bypass)</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="cont-wav">Dialogue WAV (for Lip-Sync)</label>
+                    <input
+                      type="text"
+                      id="cont-wav"
+                      name="cont_wav"
+                      placeholder="voices/line_01.wav"
+                      autocorrect="off"
+                      autocapitalize="none"
+                      spellcheck="false"
+                    />
+                  </div>
+                  <div class="field span-2">
+                    <label for="cont-prompt">Continuation Prompt (for Pivot / Carry)</label>
+                    <textarea id="cont-prompt" name="continuation_prompt" rows="2" placeholder="Describe the pivoted motion or expression from Frame K onward..."></textarea>
+                  </div>
+                </div>
+                <div class="actions-row">
+                  <button type="submit" id="btn-continue-branch" class="btn-accent">Continue From Frame K</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="mask-dialog" aria-labelledby="mask-dialog-title">
+      <div class="dialog-header">
+        <h2 id="mask-dialog-title">Select Area &amp; Rebuild Keyframe (Brush Mask or SAM2 Text)</h2>
+        <button type="button" id="btn-mask-dialog-close" class="btn-secondary">Close</button>
+      </div>
+      <div class="dialog-canvas-wrap">
+        <img id="dialog-kf-img" alt="Keyframe mask target" />
+        <canvas id="dialog-mask-canvas"></canvas>
+      </div>
+      <div class="dialog-controls">
+        <div class="inline-field">
+          <label for="dialog-brush-size">Brush Size</label>
+          <input type="range" id="dialog-brush-size" name="dialog_brush_size" min="8" max="80" value="28" />
+        </div>
+        <div class="inline-field">
+          <label for="dialog-engine">Engine</label>
+          <select id="dialog-engine" name="dialog_engine">
+            <option value="kontext">FLUX Kontext (Face / Pose / Style)</option>
+            <option value="fill">FLUX Fill (Hands / Props / Background)</option>
+          </select>
+        </div>
+        <div class="inline-field">
+          <label for="dialog-target-text">Or SAM2 Area Text</label>
+          <input
+            type="text"
+            id="dialog-target-text"
+            name="dialog_target_text"
+            placeholder="e.g., sunglasses, right hand, monitor"
+          />
+        </div>
+        <input
+          type="text"
+          id="dialog-prompt"
+          name="dialog_prompt"
+          aria-label="Editing suggestion for selected area"
+          placeholder="Editing suggestion for the selected area..."
+        />
+      </div>
+      <form method="dialog" class="dialog-actions">
+        <button value="cancel" type="submit" autofocus class="btn-secondary">Cancel</button>
+        <button type="button" id="btn-dialog-clear" class="btn-secondary">Clear Brush</button>
+        <button value="apply" type="submit" class="btn-primary">Rebuild Selected Area</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

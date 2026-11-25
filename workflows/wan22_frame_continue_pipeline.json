@@ -1,0 +1,308 @@
+{
+  "900": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Pipeline 4: Branch Continuation From Repaired Frame K (`Carry` / `Pivot` / `Lip-Sync`)\n**Purpose:** Resumes the shot seamlessly from your repaired **Frame K** while keeping the locked prefix (`Frames 0 .. K-1`) mathematically untouched.\n\n- **Mode 1 & 2 — `carry` or `pivot` (Nodes 1–18):**\n  - Feeds `Frame K Repaired` into Wan 2.2 Dual-Expert MoE with automatic **`4k + 1` padding** (e.g., if 36 frames remain, Node `12` requests `37` frames).\n  - **Node 16 (`ColorMatch`)** locks the generated tail's color temperature and exposure to `Frame K Repaired` so lighting never shifts across the cut.\n  - **Node 17 (`ImageFromBatch`)** drops index `0` (which duplicates `Frame K`) and trims any `4k + 1` padding before lossless FFV1 stitching.\n- **Mode 3 — `lipsync` Fast Bypass (Nodes 19–22):**\n  - Skips full 14B video re-generation! Loads the existing motion tail + a `.wav` dialogue line into **LatentSync 1.6** (Node `21`) to re-animate only the lower face/lips in seconds."
+    },
+    "_meta": {
+      "title": "📖 READ FIRST — Pipeline 4: Seamless Continuation & Lip-Sync",
+      "description": "Explains 4k+1 tail math, duplicate frame-0 dropping, MKL color matching, and the LatentSync 1.6 dialogue bypass."
+    }
+  },
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "scratch/frame_repaired.png"
+    },
+    "_meta": {
+      "title": "[1] Load Approved Repaired Frame K (New Tail Start)",
+      "description": "Acts as frame 0 of the new continuation tail so the repaired anatomy/expression carries forward."
+    }
+  },
+  "2": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "scratch/end_frame_pivot.png"
+    },
+    "_meta": {
+      "title": "[2] Load Optional Pivot End Frame Anchor",
+      "description": "Optional target landing keyframe when redirecting the shot's ending in 'pivot' mode."
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "[3] Load UMT5-XXL Text Encoder",
+      "description": "Encodes the continuation or pivoted action prompt."
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    },
+    "_meta": {
+      "title": "[4] Load Wan 3D Causal Video VAE",
+      "description": "3D temporal VAE requiring 4k + 1 frame counts."
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "character continues action smoothly with natural motion and film lighting",
+      "clip": ["3", 0]
+    },
+    "_meta": {
+      "title": "[5] Continuation / Pivot Motion Prompt",
+      "description": "In 'carry' mode, keeps original motion; in 'pivot' mode, describes the new story direction from Frame K onward."
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "jump cut, face morph, flicker, extra limbs, distorted hands",
+      "clip": ["3", 0]
+    },
+    "_meta": {
+      "title": "[6] Continuation Negative Prompt",
+      "description": "Prevents jump-cut pops, facial drift, and hand regression in the branched tail."
+    }
+  },
+  "7": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[7] Load Wan 2.2 High-Noise 14B Expert",
+      "description": "Pass 1 expert establishing smooth motion trajectory out of Frame K."
+    }
+  },
+  "8": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[8] Load Wan 2.2 Low-Noise 14B Expert",
+      "description": "Pass 2 expert preserving fine identity and the repaired details."
+    }
+  },
+  "9": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["8", 0],
+      "lora_name": "scratch/character_wan22.safetensors",
+      "strength_model": 0.85
+    },
+    "_meta": {
+      "title": "[9] Character Wan 2.2 Low-Noise LoRA (0.85)",
+      "description": "Keeps character likeness consistent across the continuation tail."
+    }
+  },
+  "10": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": ["7", 0],
+      "shift": 6.0
+    },
+    "_meta": {
+      "title": "[10] High-Noise Flow-Match Shift (6.0)",
+      "description": "Timestep shift for Pass 1."
+    }
+  },
+  "11": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": ["9", 0],
+      "shift": 6.0
+    },
+    "_meta": {
+      "title": "[11] Low-Noise Flow-Match Shift (6.0)",
+      "description": "Timestep shift for Pass 2."
+    }
+  },
+  "12": {
+    "class_type": "WanFirstLastFrameToVideo",
+    "inputs": {
+      "positive": ["5", 0],
+      "negative": ["6", 0],
+      "vae": ["4", 0],
+      "start_image": ["1", 0],
+      "end_image": ["2", 0],
+      "width": 1280,
+      "height": 720,
+      "length": 37,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "[12] Wan 2.2 Tail Conditioning (Auto-Padded to 4k + 1)",
+      "description": "Shot Director automatically computes length = ceil(remaining / 4) * 4 + 1 (e.g., 37 requested to yield 36 new tail frames)."
+    }
+  },
+  "13": {
+    "class_type": "KSamplerAdvanced",
+    "inputs": {
+      "model": ["10", 0],
+      "add_noise": "enable",
+      "noise_seed": 42,
+      "steps": 24,
+      "cfg": 3.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": ["12", 0],
+      "negative": ["12", 1],
+      "latent_image": ["12", 2],
+      "start_at_step": 0,
+      "end_at_step": 12,
+      "return_with_leftover_noise": "enable"
+    },
+    "_meta": {
+      "title": "[13] MoE Pass 1: High-Noise Tail Sampler (Steps 0 -> 12)",
+      "description": "Generates the macro motion continuation from Frame K."
+    }
+  },
+  "14": {
+    "class_type": "KSamplerAdvanced",
+    "inputs": {
+      "model": ["11", 0],
+      "add_noise": "disable",
+      "noise_seed": 42,
+      "steps": 24,
+      "cfg": 3.5,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": ["12", 0],
+      "negative": ["12", 1],
+      "latent_image": ["13", 0],
+      "start_at_step": 12,
+      "end_at_step": 24,
+      "return_with_leftover_noise": "disable"
+    },
+    "_meta": {
+      "title": "[14] MoE Pass 2: Low-Noise Tail Sampler (Steps 12 -> 24)",
+      "description": "Refines facial likeness and surface textures across the tail."
+    }
+  },
+  "15": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["14", 0],
+      "vae": ["4", 0]
+    },
+    "_meta": {
+      "title": "[15] Decode Tail Video Latents",
+      "description": "Decodes the 4k + 1 continuation batch to RGB frames."
+    }
+  },
+  "16": {
+    "class_type": "ColorMatch",
+    "inputs": {
+      "image_ref": ["1", 0],
+      "image_target": ["15", 0],
+      "method": "mkl",
+      "strength": 0.85
+    },
+    "_meta": {
+      "title": "[16] MKL Color-Grade Lock to Repaired Frame K (0.85)",
+      "description": "Prevents subtle exposure or color-temperature drift across the splice point."
+    }
+  },
+  "17": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": ["16", 0],
+      "batch_index": 1,
+      "length": 36
+    },
+    "_meta": {
+      "title": "[17] Drop Duplicate Frame 0 & Trim Exact Remaining Length",
+      "description": "Skips batch_index 0 (avoiding a 2-frame freeze on Frame K) and trims any 4k+1 padding frames."
+    }
+  },
+  "18": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["17", 0],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "scratch/branch_tail_lossless",
+      "format": "video/ffv1-mkv",
+      "save_output": true
+    },
+    "_meta": {
+      "title": "[18] Save Lossless Tail (FFV1 .mkv for Prefix Concatenation)",
+      "description": "Spliced losslessly onto locked Frames 0..K-1 + Repaired Frame K by Shot Director."
+    }
+  },
+  "901": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Fast Lip-Sync Bypass Subgraph (Nodes 19–22)\nWhen you choose **`mode = \"lipsync\"`**, you already like the body and camera motion — you just want the character to speak a `.wav` dialogue line from `~/ComfyFactory/voices/`.\n\n**LatentSync 1.6 (Node 21)** re-synthesizes only the mouth and jaw region synchronized to your audio waveform, leaving eyes, hair, and background untouched."
+    },
+    "_meta": {
+      "title": "🎙️ LIP-SYNC MODE SUBGRAPH (LatentSync 1.6)",
+      "description": "Explains the fast audio-driven lip-sync branch."
+    }
+  },
+  "19": {
+    "class_type": "VHS_LoadVideo",
+    "inputs": {
+      "video": "scratch/tail_source.mkv",
+      "force_rate": 24,
+      "frame_load_cap": 0,
+      "select_every_nth": 1
+    },
+    "_meta": {
+      "title": "[19] Load Existing Tail Video (Frames K .. N)",
+      "description": "Loads the video segment starting at Frame K to apply lip synchronization."
+    }
+  },
+  "20": {
+    "class_type": "LoadAudio",
+    "inputs": {
+      "audio": "scratch/dialogue.wav"
+    },
+    "_meta": {
+      "title": "[20] Load Spoken Dialogue WAV",
+      "description": "Clean mono/stereo speech WAV uploaded from ~/ComfyFactory/voices/."
+    }
+  },
+  "21": {
+    "class_type": "LatentSyncNode",
+    "inputs": {
+      "images": ["19", 0],
+      "audio": ["20", 0],
+      "seed": 42,
+      "lips_expression": 1.5,
+      "inference_steps": 20
+    },
+    "_meta": {
+      "title": "[21] LatentSync 1.6 Audio-Driven Mouth Synthesis (1.5x Expression)",
+      "description": "Synchronizes lip and jaw articulation to the dialogue audio. Lower lips_expression (1.1–1.3) for subtle speech; raise (1.5–1.8) for dramatic projection."
+    }
+  },
+  "22": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["21", 0],
+      "audio": ["20", 0],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "scratch/branch_lipsync_lossless",
+      "format": "video/ffv1-mkv",
+      "save_output": true
+    },
+    "_meta": {
+      "title": "[22] Save Lossless Lip-Synced Tail + Audio (.mkv)",
+      "description": "Outputs the lip-synced tail with embedded audio for lossless splicing onto the shot prefix."
+    }
+  }
+}

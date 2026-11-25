@@ -1,0 +1,40 @@
+[project]
+name = "comfy-factory-mcp"
+version = "0.1.0"
+description = "Local MCP control plane, RunPod provisioner, and Director Studio backend for Nairobiwood"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.6.0",
+    "httpx>=0.28.0",
+    "websockets>=14.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "starlette>=0.45.0",
+    "uvicorn>=0.34.0",
+    "pillow>=11.0.0",
+    "numpy>=2.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "respx>=0.22.0",
+]
+
+[project.scripts]
+nairobiwood-mcp = "comfy_factory_mcp.server:main"
+nairobiwood-cli = "comfy_factory_mcp.cli:main"
+nairobiwood-studio = "comfy_factory_mcp.web_studio:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/comfy_factory_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]

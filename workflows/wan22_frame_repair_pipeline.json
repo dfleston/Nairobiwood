@@ -1,0 +1,268 @@
+{
+  "900": {
+    "class_type": "MarkdownNote",
+    "inputs": {
+      "text": "### Pipeline 3: Pause-and-Pivot Surgical Frame Repair (Frame K)\n**Purpose:** Fixes an artifact at exact **Frame K** (e.g., extra finger, warped prop, drifted face) while keeping every unmasked pixel 100% untouched so Frames `0 .. K-1` splice seamlessly into `Frame K`.\n\n- **Two Ways to Mask (Nodes 2–7):**\n  1. **Brush Mask in Director Studio:** Paint directly over the problem area on the Timeline canvas (loaded via Node `2`).\n  2. **Text Auto-Mask (`Florence-2` + `SAM 2.1`):** Type a phrase like `\"right hand\"` in Node `4`; Florence-2 finds the bounding box and SAM 2.1 cuts a pixel-accurate mask, dilated & feathered by Node `7`.\n- **Two Repair Engines (Nodes 10–13):**\n  - **`FLUX.1-Kontext-dev` (Nodes 10–11):** Best for facial identity, gaze, expression, or posture fixes (`LoRA ~0.85`).\n  - **`FLUX.1-Fill-dev` (Nodes 12–13):** Best for hands, props, clothing seams, or object removal (`LoRA capped <= 0.50` so Fill doesn't hallucinate faces onto hands).\n- **Zero-Drift Guarantee:** Node `19` (`ImageCompositeMasked`) composites *only* the feathered mask back onto raw Frame K, guaranteeing a high Seam Continuity Score against Frame `K-1`."
+    },
+    "_meta": {
+      "title": "📖 READ FIRST — Pipeline 3: Surgical Frame K Repair",
+      "description": "Explains Brush vs. Florence-2/SAM2 masking, Kontext vs. Fill repair engines, and unmasked pixel preservation."
+    }
+  },
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "scratch/frame_raw.png"
+    },
+    "_meta": {
+      "title": "[1] Load Extracted Raw Frame K",
+      "description": "Exact uncompressed PNG extracted from the lossless FFV1 master at the frame where you paused."
+    }
+  },
+  "2": {
+    "class_type": "LoadImageMask",
+    "inputs": {
+      "image": "scratch/mask_override.png",
+      "channel": "red"
+    },
+    "_meta": {
+      "title": "[2] Load User-Painted Brush Mask (From Director Studio)",
+      "description": "Binary mask painted on the Director Studio canvas. When provided, Shot Director routes this mask directly into Node 7."
+    }
+  },
+  "3": {
+    "class_type": "DownloadAndLoadFlorence2Model",
+    "inputs": {
+      "model": "microsoft/Florence-2-large",
+      "precision": "fp16",
+      "attention": "sdpa"
+    },
+    "_meta": {
+      "title": "[3] Load Florence-2 Vision Grounding Model",
+      "description": "Vision-language model that locates objects or body parts in Frame K from plain-English text."
+    }
+  },
+  "4": {
+    "class_type": "Florence2Run",
+    "inputs": {
+      "image": ["1", 0],
+      "florence2_model": ["3", 0],
+      "text_input": "right hand",
+      "task": "caption_to_phrase_grounding",
+      "fill_mask": true
+    },
+    "_meta": {
+      "title": "[4] Auto-Locate Target Phrase (Text -> Bounding Box)",
+      "description": "Type what to fix (e.g., 'right hand', 'coffee mug', 'sunglasses') when you haven't painted a manual mask."
+    }
+  },
+  "5": {
+    "class_type": "DownloadAndLoadSAM2Model",
+    "inputs": {
+      "model": "sam2.1_hiera_large.safetensors",
+      "segmentor": "single_image",
+      "device": "cuda",
+      "precision": "bf16"
+    },
+    "_meta": {
+      "title": "[5] Load SAM 2.1 Hiera-Large Segmentor",
+      "description": "Segment Anything 2.1 model for crisp silhouette edges around the grounded bounding box."
+    }
+  },
+  "6": {
+    "class_type": "Sam2Segmentation",
+    "inputs": {
+      "sam2_model": ["5", 0],
+      "image": ["1", 0],
+      "bboxes": ["4", 3],
+      "keep_model_loaded": false
+    },
+    "_meta": {
+      "title": "[6] Cut Pixel-Exact Mask with SAM 2.1",
+      "description": "Converts Florence-2's bounding box into an exact pixel mask and unloads SAM2 immediately to save VRAM."
+    }
+  },
+  "7": {
+    "class_type": "GrowMaskWithBlur",
+    "inputs": {
+      "mask": ["6", 0],
+      "expand": 12,
+      "incremental_expandrate": 0.0,
+      "tapered_corners": true,
+      "flip_input": false,
+      "blur_radius": 8.0,
+      "lerp_alpha": 1.0,
+      "decay_factor": 1.0
+    },
+    "_meta": {
+      "title": "[7] Expand (12px) & Feather (8px) Inpaint Seam",
+      "description": "Gives the inpaint model breathing room around deformed edges and feathers the boundary so there is no visible cut line."
+    }
+  },
+  "8": {
+    "class_type": "DualCLIPLoader",
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "[8] Load FLUX DualCLIP",
+      "description": "Shared text encoders for FLUX Kontext and FLUX Fill repair engines."
+    }
+  },
+  "9": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "_meta": {
+      "title": "[9] Load FLUX Autoencoder (VAE)",
+      "description": "Encodes Frame K for masked inpainting and decodes the repaired region."
+    }
+  },
+  "10": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux1-kontext-dev-fp8.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[10] Repair Engine A: FLUX.1-Kontext-dev (Face / Expression / Pose)",
+      "description": "Default repair engine when fixing facial likeness, eye direction, or head/shoulder posture."
+    }
+  },
+  "11": {
+    "class_type": "LoraLoader",
+    "inputs": {
+      "model": ["10", 0],
+      "clip": ["8", 0],
+      "lora_name": "scratch/character_flux.safetensors",
+      "strength_model": 0.85,
+      "strength_clip": 0.85
+    },
+    "_meta": {
+      "title": "[11] Character FLUX LoRA on Kontext (Full Identity — 0.85)",
+      "description": "Applies full character identity strength when repairing faces or expressions with Kontext."
+    }
+  },
+  "12": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "flux1-fill-dev-fp8.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
+    },
+    "_meta": {
+      "title": "[12] Repair Engine B: FLUX.1-Fill-dev (Hands / Props / Background)",
+      "description": "Dedicated structural inpainting engine selected automatically when repair_engine='fill'."
+    }
+  },
+  "13": {
+    "class_type": "LoraLoader",
+    "inputs": {
+      "model": ["12", 0],
+      "clip": ["8", 0],
+      "lora_name": "scratch/character_flux.safetensors",
+      "strength_model": 0.45,
+      "strength_clip": 0.45
+    },
+    "_meta": {
+      "title": "[13] Character FLUX LoRA on Fill (Capped <= 0.45 for Anatomy)",
+      "description": "Deliberately lowered LoRA weight so portrait training doesn't overpower hand anatomy or prop geometry."
+    }
+  },
+  "14": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "natural anatomical right hand gripping glass cup, matching warm lighting",
+      "clip": ["11", 1]
+    },
+    "_meta": {
+      "title": "[14] Surgical Repair Positive Prompt",
+      "description": "Describe specifically what the masked region should look like, matching the existing lighting of Frame K."
+    }
+  },
+  "15": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "deformed fingers, extra digits, blurred seam, artifacts",
+      "clip": ["11", 1]
+    },
+    "_meta": {
+      "title": "[15] Surgical Repair Negative Prompt",
+      "description": "Guards against extra digits, smudged edges, and color shifts inside the mask."
+    }
+  },
+  "16": {
+    "class_type": "InpaintModelConditioning",
+    "inputs": {
+      "positive": ["14", 0],
+      "negative": ["15", 0],
+      "vae": ["9", 0],
+      "pixels": ["1", 0],
+      "mask": ["7", 0],
+      "noise_mask": true
+    },
+    "_meta": {
+      "title": "[16] Restrict Denoising Noise Strictly to Feathered Mask",
+      "description": "Locks surrounding context latents and restricts sampling noise to the dilated mask area."
+    }
+  },
+  "17": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["11", 0],
+      "positive": ["16", 0],
+      "negative": ["16", 1],
+      "latent_image": ["16", 2],
+      "seed": 42,
+      "steps": 24,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 0.65
+    },
+    "_meta": {
+      "title": "[17] Sample Repaired Patch (Denoise 0.65 Default)",
+      "description": "0.50–0.65 gently fixes lighting/expressions; raise to 0.75–0.90 when completely reconstructing a deformed hand or prop."
+    }
+  },
+  "18": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["17", 0],
+      "vae": ["9", 0]
+    },
+    "_meta": {
+      "title": "[18] Decode Repaired Frame Candidate",
+      "description": "Decodes the inpainted latent back to RGB pixels."
+    }
+  },
+  "19": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": ["1", 0],
+      "source": ["18", 0],
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "mask": ["7", 0]
+    },
+    "_meta": {
+      "title": "[19] Pixel-Exact Alpha Composite (100% Unmasked Preservation)",
+      "description": "Guarantees zero VAE re-encoding blur outside your mask so Frame K-1 -> Frame K has an invisible seam."
+    }
+  },
+  "20": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["19", 0],
+      "filename_prefix": "scratch/frame_repaired"
+    },
+    "_meta": {
+      "title": "[20] Save Repaired Frame K (Ready for Seam Check & Continuation)",
+      "description": "Saves the repaired frame and triggers the 3-up Seam Comparison strip (K-1 | K Raw | K Repaired) in Director Studio."
+    }
+  }
+}

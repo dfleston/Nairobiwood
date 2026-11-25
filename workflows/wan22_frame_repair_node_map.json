@@ -1,0 +1,86 @@
+{
+  "frame_raw_image": {
+    "node_id": "1",
+    "input_key": "image",
+    "type": "string",
+    "description": "Raw Frame K PNG path relative to ComfyUI input"
+  },
+  "mask_override_image": {
+    "node_id": "2",
+    "input_key": "image",
+    "type": "string",
+    "description": "User-brushed binary mask PNG path"
+  },
+  "mask_target_text": {
+    "node_id": "4",
+    "input_key": "text_input",
+    "type": "string",
+    "description": "Text prompt for Florence-2 phrase grounding -> SAM 2.1"
+  },
+  "mask_expand_px": {
+    "node_id": "7",
+    "input_key": "expand",
+    "type": "integer",
+    "description": "Mask dilation in pixels (8-16)"
+  },
+  "mask_blur_radius": {
+    "node_id": "7",
+    "input_key": "blur_radius",
+    "type": "float",
+    "description": "Gaussian feather radius on mask edges"
+  },
+  "character_flux_lora_kontext": {
+    "node_id": "11",
+    "input_key": "lora_name",
+    "type": "string",
+    "description": "Character FLUX LoRA for Kontext identity/pose repair"
+  },
+  "character_flux_lora_fill": {
+    "node_id": "13",
+    "input_key": "lora_name",
+    "type": "string",
+    "description": "Character FLUX LoRA for Fill hand/prop repair (strength <= 0.50)"
+  },
+  "lora_strength_kontext": {
+    "node_id": "11",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "FLUX Kontext LoRA strength"
+  },
+  "lora_strength_fill": {
+    "node_id": "13",
+    "input_key": "strength_model",
+    "type": "float",
+    "description": "FLUX Fill LoRA strength (capped <= 0.50)"
+  },
+  "repair_prompt": {
+    "node_id": "14",
+    "input_key": "text",
+    "type": "string",
+    "description": "Localized repair description"
+  },
+  "negative_prompt": {
+    "node_id": "15",
+    "input_key": "text",
+    "type": "string",
+    "description": "Negative prompt for localized repair"
+  },
+  "seed": {
+    "node_id": "17",
+    "input_key": "seed",
+    "type": "integer",
+    "description": "KSampler seed for repair"
+  },
+  "inpaint_denoise": {
+    "node_id": "17",
+    "input_key": "denoise",
+    "type": "float",
+    "description": "Inpaint denoising strength (0.55-0.75)"
+  },
+  "output_prefix": {
+    "node_id": "20",
+    "input_key": "filename_prefix",
+    "type": "string",
+    "description": "Output filename prefix for repaired Frame K"
+  }
+}
