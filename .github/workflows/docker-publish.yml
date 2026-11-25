@@ -20,6 +20,18 @@ jobs:
       packages: write
 
     steps:
+      - name: Maximize runner build space
+        run: |
+          echo "=== Initial Disk Space ==="
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -a -f || true
+          echo "=== Liberated Disk Space ==="
+          df -h
+
       - name: Checkout repository
         uses: actions/checkout@v4
 

@@ -33,11 +33,11 @@ RUN mkdir -p /run/sshd && \
     sed -i 's/^#\?AllowTcpForwarding.*/AllowTcpForwarding yes/' /etc/ssh/sshd_config
 
 # 3. PyTorch 2.6.0 + CUDA 12.4 + Core Acceleration
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install \
+RUN python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir \
       torch==2.6.0 torchvision torchaudio \
       --index-url https://download.pytorch.org/whl/cu124 && \
-    python3 -m pip install \
+    python3 -m pip install --no-cache-dir \
       huggingface_hub[hf_transfer] \
       hf-transfer \
       accelerate \
@@ -62,14 +62,14 @@ with open(path, 'w') as f: f.write(c)"
 WORKDIR /opt
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /opt/ComfyUI && \
     cd /opt/ComfyUI && \
-    python3 -m pip install -r requirements.txt
+    python3 -m pip install --no-cache-dir -r requirements.txt
 
 # 6. Install custom nodes
 WORKDIR /opt/ComfyUI/custom_nodes
 RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
     git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
     for req in */requirements.txt; do \
-      if [ -f "$req" ]; then python3 -m pip install -r "$req" || true; fi; \
+      if [ -f "$req" ]; then python3 -m pip install --no-cache-dir -r "$req" || true; fi; \
     done
 
 # 7. Setup models structure & bootstrapper (No LoRAs, No baked weights)
