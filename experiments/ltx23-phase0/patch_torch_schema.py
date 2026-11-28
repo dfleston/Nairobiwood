@@ -117,12 +117,14 @@ async def _verify_comfy_nodes(comfy_dir: str = "/opt/ComfyUI") -> None:
 
     comfy.options.enable_args_parsing()
 
+    from app.assets.manager import default_asset_manager
     import nodes
     import server
 
-    srv = server.PromptServer(asyncio.get_running_loop())
+    asset_manager = default_asset_manager()
+    srv = server.PromptServer(asyncio.get_running_loop(), asset_manager)
     server.PromptServer.instance = srv
-    res = nodes.init_extra_nodes()
+    res = nodes.init_extra_nodes(init_custom_nodes=True, init_api_nodes=False)
     if inspect.isawaitable(res):
         await res
 
