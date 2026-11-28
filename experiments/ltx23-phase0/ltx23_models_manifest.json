@@ -1,0 +1,74 @@
+[
+  {
+    "id": "ltx23_22b_dev_fp8",
+    "repo_id": "Kijai/LTX2.3_comfy",
+    "filename": "diffusion_models/ltx-2.3-22b-dev_transformer_only_fp8_scaled.safetensors",
+    "target_subdir": "diffusion_models",
+    "target_filename": "ltx-2.3-22b-dev_transformer_only_fp8_scaled.safetensors",
+    "gated": false
+  },
+  {
+    "id": "gemma3_12b_it_fp8",
+    "repo_id": "Comfy-Org/ltx-2",
+    "filename": "split_files/text_encoders/gemma_3_12B_it_fp8_scaled.safetensors",
+    "target_subdir": "text_encoders",
+    "target_filename": "gemma_3_12B_it_fp8_scaled.safetensors",
+    "gated": false
+  },
+  {
+    "id": "ltx23_text_projection_bf16",
+    "repo_id": "Kijai/LTX2.3_comfy",
+    "filename": "text_encoders/ltx-2.3_text_projection_bf16.safetensors",
+    "target_subdir": "text_encoders",
+    "target_filename": "ltx-2.3_text_projection_bf16.safetensors",
+    "gated": false
+  },
+  {
+    "id": "ltx23_video_vae_bf16",
+    "repo_id": "Kijai/LTX2.3_comfy",
+    "filename": "vae/LTX23_video_vae_bf16.safetensors",
+    "target_subdir": "vae",
+    "target_filename": "LTX23_video_vae_bf16.safetensors",
+    "gated": false
+  },
+  {
+    "id": "ltx23_audio_vae_bf16",
+    "repo_id": "Kijai/LTX2.3_comfy",
+    "filename": "vae/LTX23_audio_vae_bf16.safetensors",
+    "target_subdir": "vae",
+    "target_filename": "LTX23_audio_vae_bf16.safetensors",
+    "gated": false
+  },
+  {
+    "id": "taeltx2_3",
+    "repo_id": "Kijai/LTX2.3_comfy",
+    "filename": "vae/taeltx2_3.safetensors",
+    "target_subdir": "vae",
+    "target_filename": "taeltx2_3.safetensors",
+    "gated": false
+  },
+  {
+    "id": "ltx23_spatial_upscaler_x2",
+    "repo_id": "Lightricks/LTX-2.3",
+    "filename": "ltx-2.3-spatial-upscaler-x2-1.1.safetensors",
+    "target_subdir": "latent_upscale_models",
+    "target_filename": "ltx-2.3-spatial-upscaler-x2-1.1.safetensors",
+    "gated": false
+  },
+  {
+    "id": "ltx23_distilled_1_1_lora",
+    "repo_id": "Kijai/LTX2.3_comfy",
+    "filename": "loras/ltx-2.3-22b-distilled-1.1_lora-dynamic_fro09_avg_rank_111_bf16.safetensors",
+    "target_subdir": "loras",
+    "target_filename": "ltx-2.3-22b-distilled-1.1_lora-dynamic_fro09_avg_rank_111_bf16.safetensors",
+    "gated": false
+  },
+  {
+    "id": "best_faceid_v1_0_lora",
+    "repo_id": "Alissonerdx/LTX-Best-Face-ID",
+    "filename": "Best_FaceID_v1.0_LoRA.safetensors",
+    "target_subdir": "loras",
+    "target_filename": "Best_FaceID_v1.0_LoRA.safetensors",
+    "gated": false
+  }
+]

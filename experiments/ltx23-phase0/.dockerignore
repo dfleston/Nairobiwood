@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+outputs/
+*.mp4
+*.mkv
+*.png
+*.jpg
+*.jpeg
+*.safetensors
+.env
