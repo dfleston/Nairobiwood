@@ -347,7 +347,7 @@ async def run_benchmarks(args: argparse.Namespace) -> dict[str, Any]:
                         pod_id = str(pod["id"])
                         provider = prov
                         provider_name = "vastai"
-                        ssh_host, ssh_port = await prov.wait_for_ssh_endpoint(pod_id, timeout_sec=600.0)
+                        ssh_host, ssh_port = await prov.wait_for_ssh_endpoint(pod_id, timeout_sec=420.0)
                         break
                     if cand == "runpod" and runpod_key:
                         prov_rp = RunPodProvider(runpod_key)
@@ -527,7 +527,8 @@ async def run_benchmarks(args: argparse.Namespace) -> dict[str, Any]:
             for remote_dir in (
                 f"/opt/ComfyUI/output/scratch/{run_id}/",
                 f"/opt/ComfyUI/input/scratch/{run_id}/",
-                "/dev/shm/factory_scratch/",
+                "/dev/shm/factory_scratch/active_loras/",
+                "/dev/shm/factory_scratch/temp_renders/",
             ):
                 try:
                     await tunnel.purge_remote(remote_dir)

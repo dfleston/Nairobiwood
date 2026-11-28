@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 export PATH="/opt/venv/bin:/root/.local/bin:${PATH}"
 
@@ -12,18 +12,30 @@ if [[ -n "${PUBLIC_KEY:-}" ]]; then
   chmod 600 /root/.ssh/authorized_keys
 fi
 
+# Start sshd only if Runpod/host runtime has not already started it on :22
 mkdir -p /run/sshd
-/usr/sbin/sshd
+if ! pgrep -x sshd >/dev/null 2>&1; then
+  /usr/sbin/sshd || true
+fi
 
 echo "=============================================="
 echo "   Nairobiwood LTX-2.3 + FaceID Phase 0 Pod   "
 echo "=============================================="
-python3 -c "import torch; print('PyTorch:', torch.__version__, 'CUDA:', torch.version.cuda, 'Avail:', torch.cuda.is_available())"
+python3 -c "import torch; print('PyTorch:', torch.__version__, 'CUDA:', torch.version.cuda, 'Avail:', torch.cuda.is_available())" || true
 
-# 2. Bootstrap LTX-2.3 FP8 + Best-Face-ID weights
-/opt/bootstrap_ltx23.sh
+# 2. Bootstrap LTX-2.3 FP8 + Best-Face-ID weights and launch ComfyUI in background
+# Keep PID 1 (and sshd) alive on failure so logs can be inspected before teardown.
+(
+  set -euo pipefail
+  /opt/bootstrap_ltx23.sh > /tmp/bootstrap_ltx23.log 2>&1
+  cd /opt/ComfyUI
+  exec /opt/venv/bin/python3 /opt/ComfyUI/main.py --listen 127.0.0.1 --port 8188 --disable-metadata > /tmp/comfyui.log 2>&1
+) &
+CHILD_PID=$!
 
-# 3. Start ComfyUI bound strictly to 127.0.0.1:8188
-echo "Starting ComfyUI on 127.0.0.1:8188 (--disable-metadata)..."
-cd /opt/ComfyUI
-exec /opt/venv/bin/python3 /opt/ComfyUI/main.py --listen 127.0.0.1 --port 8188 --disable-metadata
+trap 'kill -TERM "$CHILD_PID" 2>/dev/null || true' TERM INT
+wait "$CHILD_PID" || {
+  echo "[entrypoint] Bootstrap or ComfyUI exited early; keeping SSH open for diagnostics." >&2
+  sleep 600
+}
+
