@@ -96,22 +96,7 @@ RUN mkdir -p /opt/ComfyUI/models/diffusion_models \
     touch /opt/ComfyUI/models/loras/put_loras_here
 
 COPY patch_torch_schema.py /opt/patch_torch_schema.py
-RUN python3 /opt/patch_torch_schema.py && \
-    cd /opt/ComfyUI && python3 -c "import sys, asyncio; sys.path.insert(0, '/opt/ComfyUI'); sys.argv = ['main.py', '--cpu']; \
-    import comfy.options; comfy.options.enable_args_parsing(); \
-    import server, nodes; \
-    async def verify(): \
-        srv = server.PromptServer(asyncio.get_running_loop()); \
-        server.PromptServer.instance = srv; \
-        await nodes.init_extra_nodes(); \
-        req = ['UNETLoader','LoraLoaderModelOnly','DualCLIPLoader','VAELoader','LatentUpscaleModelLoader', \
-               'LTXVConditioning','EmptyLTXVLatentVideo','LTXVEmptyLatentAudio','LTXVConcatAVLatent', \
-               'LTXVSeparateAVLatent','LTXVCropGuides','LTXVLatentUpsampler','LTXVAudioVAEDecode', \
-               'LTXIdentityOverlapConditioning','VHS_VideoCombine']; \
-        missing = [n for n in req if n not in nodes.NODE_CLASS_MAPPINGS]; \
-        assert not missing, f'Missing nodes: {missing}'; \
-        print('Verified all 15 LTX-2.3 + BFSNodes + VHS nodes in CPU mode! Total:', len(nodes.NODE_CLASS_MAPPINGS)); \
-    asyncio.run(verify())"
+RUN python3 /opt/patch_torch_schema.py --verify-nodes
 
 COPY ltx23_models_manifest.json /opt/ltx23_models_manifest.json
 COPY bootstrap_ltx23.sh /opt/bootstrap_ltx23.sh

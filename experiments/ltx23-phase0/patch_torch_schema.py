@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Patch PyTorch 2.6 torch._library.infer_schema to support PEP 585 list[...] and PEP 604 | None."""
+"""Patch PyTorch 2.6 torch._library.infer_schema and optionally verify ComfyUI nodes."""
 
 from __future__ import annotations
 
+import asyncio
 import importlib
+import inspect
+import os
+import sys
 from pathlib import Path
 
 import torch
@@ -50,6 +54,33 @@ SUPPORTED_PARAM_TYPES.update({{
 }})
 """
 
+REQUIRED_NODES = [
+    "UNETLoader",
+    "LoraLoaderModelOnly",
+    "DualCLIPLoader",
+    "VAELoader",
+    "LatentUpscaleModelLoader",
+    "LoadImage",
+    "ImageScale",
+    "CLIPTextEncode",
+    "LTXVConditioning",
+    "EmptyLTXVLatentVideo",
+    "LTXVEmptyLatentAudio",
+    "LTXVConcatAVLatent",
+    "LTXIdentityOverlapConditioning",
+    "RandomNoise",
+    "KSamplerSelect",
+    "ManualSigmas",
+    "CFGGuider",
+    "SamplerCustomAdvanced",
+    "LTXVSeparateAVLatent",
+    "LTXVCropGuides",
+    "LTXVLatentUpsampler",
+    "VAEDecodeTiled",
+    "LTXVAudioVAEDecode",
+    "VHS_VideoCombine",
+]
+
 
 def apply_and_verify() -> None:
     target = Path(s.__file__)
@@ -76,5 +107,34 @@ def apply_and_verify() -> None:
     print("Self-test infer_schema passed:", schema)
 
 
+async def _verify_comfy_nodes(comfy_dir: str = "/opt/ComfyUI") -> None:
+    os.chdir(comfy_dir)
+    if comfy_dir not in sys.path:
+        sys.path.insert(0, comfy_dir)
+    sys.argv = ["main.py", "--cpu"]
+
+    import comfy.options
+
+    comfy.options.enable_args_parsing()
+
+    import nodes
+    import server
+
+    srv = server.PromptServer(asyncio.get_running_loop())
+    server.PromptServer.instance = srv
+    res = nodes.init_extra_nodes()
+    if inspect.isawaitable(res):
+        await res
+
+    missing = [n for n in REQUIRED_NODES if n not in nodes.NODE_CLASS_MAPPINGS]
+    assert not missing, f"Missing required ComfyUI nodes: {missing}"
+    print(
+        f"Verified all {len(REQUIRED_NODES)} LTX-2.3 + BFSNodes + VHS nodes in CPU mode! "
+        f"Total registered: {len(nodes.NODE_CLASS_MAPPINGS)}"
+    )
+
+
 if __name__ == "__main__":
     apply_and_verify()
+    if "--verify-nodes" in sys.argv:
+        asyncio.run(_verify_comfy_nodes())
