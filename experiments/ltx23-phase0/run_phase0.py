@@ -144,7 +144,7 @@ async def wait_for_ltx23_comfy(tunnel: SSHTunnelManager, timeout_sec: float = 18
 
         if loop.time() - start_t >= 12.0:
             proc_state = await tunnel.run_remote(
-                "if pgrep -f 'bootstrap_ltx23\\.sh|main\\.py --listen|/entrypoint\\.sh' >/dev/null 2>&1; then "
+                "if pgrep -f 'bootstrap_ltx23\\.sh|ComfyUI/main\\.py|main\\.py --listen' >/dev/null 2>&1; then "
                 "echo running; "
                 "elif [ -f /tmp/bootstrap_ltx23.log ] || [ -f /tmp/comfyui.log ]; then "
                 "echo failed; "
